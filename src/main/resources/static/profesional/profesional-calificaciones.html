@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <!-- =========================
+       CONFIGURACIÓN BÁSICA
+       ========================= -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Construir - Trabajos finalizados</title>
+
+  <!-- =========================
+       BOOTSTRAP
+       ========================= -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="/css/construir.css" rel="stylesheet" />
+
+  <style>
+    /* =========================
+       ESTILOS GENERALES
+       ========================= */
+    body {
+      background: #f7f7f9;
+    }
+
+    .resumen-card {
+      border: none;
+      border-radius: 1rem;
+      box-shadow: 0 6px 18px rgba(0,0,0,.06);
+    }
+
+    .resumen-numero {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #198754;
+    }
+
+    .detail-label {
+      font-size: .85rem;
+      color: #6c757d;
+      margin-bottom: .2rem;
+    }
+
+    .detail-box {
+      background: #f8f9fa;
+      border: 1px solid #e9ecef;
+      border-radius: .75rem;
+      padding: .75rem;
+      min-height: 64px;
+    }
+
+    .table-sm td,
+    .table-sm th {
+      padding: .5rem .55rem;
+    }
+  </style>
+</head>
+<body>
+
+<!-- =========================
+     NAVBAR
+     ========================= -->
+<nav class="navbar navbar-dark app-navbar">
+  <div class="container-fluid">
+    <span class="navbar-brand">Construir - Finalizados</span>
+
+    <div class="d-flex gap-2">
+      <a class="btn btn-outline-light btn-sm" href="/profesional/profesional.html">Panel</a>
+      <a class="btn btn-outline-light btn-sm" href="/profesional/profesional-trabajos.html">Oportunidades</a>
+      <a class="btn btn-outline-light btn-sm" href="/profesional/profesional-chat.html">Chat</a>
+      <button class="btn btn-danger btn-sm" onclick="logout()">Cerrar sesión</button>
+    </div>
+  </div>
+</nav>
+
+<div class="page-container">
+
+  <!-- =========================
+       ENCABEZADO DE PÁGINA
+       ========================= -->
+  <div class="page-header d-flex justify-content-between align-items-start gap-3 flex-wrap">
+    <div>
+      <h1 class="page-title">Trabajos finalizados</h1>
+      <p class="page-subtitle">
+        Revisá tus trabajos terminados y calificá a los clientes cuando corresponda.
+      </p>
+    </div>
+
+    <button class="btn btn-outline-secondary btn-sm" onclick="cargarTodo()">
+      Actualizar finalizados
+    </button>
+  </div>
+
+  <!-- =========================
+       RESUMEN
+       ========================= -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-6">
+      <div class="card summary-card">
+        <div class="card-body">
+          <div class="summary-label">Trabajos finalizados propios</div>
+          <div class="summary-number" id="res-finalizados">0</div>
+          <div class="small text-muted">
+            Solo se muestran trabajos finalizados asignados a este profesional.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card summary-card">
+        <div class="card-body">
+          <div class="summary-label">Pendientes de calificar</div>
+          <div class="summary-number" id="res-pendientes">0</div>
+          <div class="small text-muted">
+            Trabajos donde todavía podés calificar al cliente.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================
+       TABLA DE FINALIZADOS
+       ========================= -->
+  <div class="card app-card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <span>Mis trabajos finalizados</span>
+      <button class="btn btn-sm btn-secondary" onclick="cargarFinalizados()">Recargar</button>
+    </div>
+
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-sm table-hover align-middle">
+          <thead class="table-light">
+          <tr>
+            <th style="width:60px">ID</th>
+            <th>Título</th>
+            <th>Cliente</th>
+            <th>Ubicación</th>
+            <th style="width:120px">Estado</th>
+            <th style="width:260px">Acciones</th>
+          </tr>
+          </thead>
+          <tbody id="tabla-finalizados">
+          <tr><td colspan="6">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- =========================
+     MODAL DE REPUTACIÓN
+     ========================= -->
+<div class="modal fade" id="repModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          Reputación de <span id="repModalNombre">-</span>
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="row g-3 align-items-center mb-3">
+          <div class="col-md-4">
+            <div class="text-muted">Promedio</div>
+            <div class="display-6"><span id="repModalProm">0.0</span> / 5</div>
+            <div class="text-warning" id="repModalStars" style="font-size:1.1rem;">★★★★★</div>
+            <div class="small text-muted"><span id="repModalCant">0</span> calificaciones</div>
+          </div>
+
+          <div class="col-md-8">
+            <div class="table-responsive">
+              <table class="table table-sm table-hover align-middle">
+                <thead class="table-light">
+                <tr>
+                  <th style="width:60px">Puntaje</th>
+                  <th>Autor</th>
+                  <th>Comentario</th>
+                  <th style="width:120px">Fecha</th>
+                </tr>
+                </thead>
+                <tbody id="repModalTabla">
+                <tr><td colspan="4">Cargando…</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="small text-muted">Se muestran las últimas calificaciones.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =========================
+     MODAL DE DETALLE DEL TRABAJO
+     ========================= -->
+<div class="modal fade" id="detalleTrabajoModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          Detalle del trabajo <span id="detalle-id">-</span>
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-12">
+            <div class="detail-label">Título</div>
+            <div class="detail-box" id="detalle-titulo">-</div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="detail-label">Cliente</div>
+            <div class="detail-box" id="detalle-cliente">-</div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="detail-label">Estado</div>
+            <div class="detail-box" id="detalle-estado">-</div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="detail-label">Ubicación</div>
+            <div class="detail-box" id="detalle-ubicacion">-</div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="detail-label">Medidas</div>
+            <div class="detail-box" id="detalle-medidas">-</div>
+          </div>
+
+          <div class="col-12">
+            <div class="detail-label">Descripción</div>
+            <div class="detail-box" id="detalle-descripcion">-</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button id="btn-modal-calificar"
+                type="button"
+                class="btn btn-primary">
+          Calificar cliente
+        </button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // =========================================================
+  // VARIABLES GLOBALES
+  // =========================================================
+  let token = null;
+  let userId = null;
+  let trabajosFinalizados = [];
+
+  const $ = (id) => document.getElementById(id);
+  const safe = (s) => (s == null ? '' : String(s));
+
+  /**
+   * Decodifica el JWT.
+   */
+  function decodeJwt(t) {
+    return JSON.parse(atob(t.split('.')[1]));
+  }
+
+  /**
+   * Cierra sesión y vuelve al inicio público.
+   */
+  function logout() {
+    localStorage.removeItem('jwt');
+    location.href = '/public/index.html';
+  }
+
+  // =========================================================
+  // MODAL DE REPUTACIÓN
+  // =========================================================
+  function estrellas(p) {
+    const v = Math.max(0, Math.min(5, Number(p) || 0));
+    return '★★★★★'.slice(0, Math.round(v)) + '☆☆☆☆☆'.slice(0, 5 - Math.round(v));
+  }
+
+  async function verRep(personaId, nombreVisible) {
+    if (!personaId) return;
+
+    $('repModalNombre').textContent = nombreVisible || personaId;
+
+    let prom = 0.0;
+    let cant = 0;
+    let rows = '<tr><td colspan="4">Sin calificaciones.</td></tr>';
+
+    try {
+      const rp = await fetch(`/api/calificaciones/persona/${personaId}/promedio`, {
+        headers: { Authorization: 'Bearer ' + token }
+      });
+      if (rp.ok) prom = await rp.json();
+    } catch (_) {}
+
+    $('repModalProm').textContent = (prom || 0).toFixed(1);
+    $('repModalStars').textContent = estrellas(prom);
+
+    try {
+      const rl = await fetch(`/api/calificaciones/persona/${personaId}`, {
+        headers: { Authorization: 'Bearer ' + token }
+      });
+
+      if (rl.ok) {
+        const lista = await rl.json();
+        cant = Array.isArray(lista) ? lista.length : 0;
+
+        if (cant) {
+          rows = lista
+            .sort((a, b) => (b.fecha || '').localeCompare(a.fecha || ''))
+            .slice(0, 15)
+            .map(c => `
+              <tr>
+                <td>${c.puntaje ?? '-'}</td>
+                <td>${c.autorNombre || c.autorId || '-'}</td>
+                <td>${safe(c.comentario)}</td>
+                <td>${(c.fecha || '').slice(0, 10)}</td>
+              </tr>
+            `).join('');
+        }
+      }
+    } catch (_) {}
+
+    $('repModalCant').textContent = cant;
+    $('repModalTabla').innerHTML = rows;
+
+    const modal = new bootstrap.Modal(document.getElementById('repModal'));
+    modal.show();
+  }
+
+  function linkReputacion(id, nombre) {
+    const clean = String(nombre || id || '-').replace(/'/g, "\\'");
+    return `<button type="button" class="btn btn-link p-0" onclick="verRep(${Number(id)}, '${clean}')">${nombre || id || '-'}</button>`;
+  }
+
+  // =========================================================
+  // DETALLE DEL TRABAJO FINALIZADO
+  // =========================================================
+  function verDetalleTrabajo(trabajoId) {
+    const trabajo = trabajosFinalizados.find(t => Number(t.id) === Number(trabajoId));
+    if (!trabajo) return;
+
+    $('detalle-id').textContent = '#' + (trabajo.id ?? '-');
+    $('detalle-titulo').textContent = safe(trabajo.titulo) || '-';
+    $('detalle-cliente').textContent = safe(trabajo.clienteNombre) || safe(trabajo.clienteId) || '-';
+    $('detalle-estado').textContent = safe(trabajo.estado) || '-';
+    $('detalle-ubicacion').textContent = safe(trabajo.ubicacion) || 'No informada';
+    $('detalle-medidas').textContent = safe(trabajo.medidas) || 'No informadas';
+    $('detalle-descripcion').textContent = safe(trabajo.descripcion) || 'Sin descripción.';
+
+    const btnCalificar = $('btn-modal-calificar');
+
+    if (trabajo.yaCalificado) {
+      btnCalificar.textContent = 'Cliente ya calificado';
+      btnCalificar.disabled = true;
+      btnCalificar.onclick = null;
+    } else {
+      btnCalificar.textContent = 'Calificar cliente';
+      btnCalificar.disabled = false;
+      btnCalificar.onclick = () => calificarCliente(trabajo.id, trabajo.clienteId, trabajo.titulo);
+    }
+
+    const modal = new bootstrap.Modal(document.getElementById('detalleTrabajoModal'));
+    modal.show();
+  }
+
+  // =========================================================
+  // CARGA DE TRABAJOS FINALIZADOS
+  // =========================================================
+  async function cargarFinalizados() {
+    const tbody = $('tabla-finalizados');
+    tbody.innerHTML = '<tr><td colspan="6">Cargando...</td></tr>';
+
+    // 1) Traer todos los trabajos
+    const rTrabajos = await fetch('/api/trabajos', {
+      headers: { Authorization: 'Bearer ' + token }
+    });
+
+    if (!rTrabajos.ok) {
+      tbody.innerHTML = '<tr><td colspan="6">Error al cargar trabajos.</td></tr>';
+      return;
+    }
+
+    const todos = await rTrabajos.json();
+    const me = Number(userId);
+
+    // 2) Filtrar solo FINALIZADO y asignados a este profesional
+    const finalizados = (Array.isArray(todos) ? todos : [])
+      .filter(t => {
+        const estadoOk = (t.estado || '').toUpperCase() === 'FINALIZADO';
+        const pid = t.profesionalAsignadoId != null ? Number(t.profesionalAsignadoId) : null;
+        return estadoOk && pid === me;
+      })
+      .sort((a, b) => Number(b.id) - Number(a.id));
+
+    // 3) Verificar si ya calificó al cliente en cada trabajo
+    const enriquecidos = await Promise.all(finalizados.map(async (t) => {
+      let yaCalificado = false;
+
+      try {
+        const rCalif = await fetch(`/api/calificaciones/persona/${t.clienteId}`, {
+          headers: { Authorization: 'Bearer ' + token }
+        });
+
+        if (rCalif.ok) {
+          const lista = await rCalif.json();
+          yaCalificado = (Array.isArray(lista) ? lista : []).some(c =>
+            Number(c.autorId) === Number(userId) &&
+            Number(c.destinatarioId) === Number(t.clienteId) &&
+            Number(c.trabajoId) === Number(t.id)
+          );
+        }
+      } catch (_) {
+        yaCalificado = false;
+      }
+
+      return {
+        ...t,
+        yaCalificado
+      };
+    }));
+
+    trabajosFinalizados = enriquecidos;
+
+    // 4) Resúmenes
+    $('res-finalizados').textContent = enriquecidos.length;
+    $('res-pendientes').textContent = enriquecidos.filter(t => !t.yaCalificado).length;
+
+    // 5) Render tabla
+    renderFinalizados();
+  }
+
+  /**
+   * Renderiza la tabla de finalizados.
+   */
+  function renderFinalizados() {
+    const tbody = $('tabla-finalizados');
+
+    if (!trabajosFinalizados.length) {
+      tbody.innerHTML = '<tr><td colspan="6">No tenés trabajos finalizados aún.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = trabajosFinalizados.map(t => `
+      <tr>
+        <td>${t.id}</td>
+        <td>${safe(t.titulo)}</td>
+        <td>${linkReputacion(t.clienteId, safe(t.clienteNombre) || t.clienteId)}</td>
+        <td>${safe(t.ubicacion) || '-'}</td>
+        <td><span class="badge bg-success">FINALIZADO</span></td>
+        <td class="d-flex gap-2 flex-wrap">
+          <button class="btn btn-sm btn-outline-secondary"
+                  onclick="verDetalleTrabajo(${t.id})">
+            Ver detalle
+          </button>
+
+          ${
+            t.yaCalificado
+              ? `<button class="btn btn-sm btn-secondary" disabled>Cliente ya calificado</button>`
+              : `<button class="btn btn-sm btn-outline-primary" onclick="calificarCliente(${t.id}, ${t.clienteId}, '${safe(t.titulo).replace(/'/g, "\\'")}')">Calificar cliente</button>`
+          }
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  /**
+   * Permite calificar al cliente.
+   */
+  async function calificarCliente(trabajoId, clienteId, titulo) {
+    let puntajeStr = prompt(`Del 1 al 5, ¿cómo calificarías al cliente por "${titulo}"?`);
+    if (puntajeStr == null) return;
+
+    const puntaje = parseInt(puntajeStr, 10);
+    if (isNaN(puntaje) || puntaje < 1 || puntaje > 5) {
+      alert('El puntaje debe ser un número entre 1 y 5.');
+      return;
+    }
+
+    const comentario = prompt('Comentario opcional:') || '';
+
+    const body = {
+      autorId: userId,
+      destinatarioId: clienteId,
+      trabajoId,
+      puntaje,
+      comentario
+    };
+
+    const r = await fetch('/api/calificaciones', {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer ' + token,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+
+    if (!r.ok) {
+      const txt = await r.text();
+      alert('No se pudo registrar la calificación: ' + txt);
+      return;
+    }
+
+    alert('Calificación registrada con éxito.');
+    await cargarFinalizados();
+  }
+
+  // =========================================================
+  // CARGA GENERAL
+  // =========================================================
+  async function cargarTodo() {
+    await cargarFinalizados();
+  }
+
+  // =========================================================
+  // INICIO DE LA PÁGINA
+  // =========================================================
+  document.addEventListener('DOMContentLoaded', async () => {
+    token = localStorage.getItem('jwt');
+
+    if (!token) {
+      location.href = '/public/login.html';
+      return;
+    }
+
+    const payload = decodeJwt(token);
+    userId = payload.userId;
+
+    if (payload.rol !== 'PROFESIONAL') {
+      alert('Esta vista es solo para profesionales.');
+      logout();
+      return;
+    }
+
+    await cargarTodo();
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

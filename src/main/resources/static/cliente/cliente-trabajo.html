@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <!-- =========================
+         CONFIGURACIÓN BÁSICA
+         ========================= -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Construir - Mis trabajos</title>
+
+    <!-- =========================
+         BOOTSTRAP
+         ========================= -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="/css/construir.css" rel="stylesheet" />
+
+    <style>
+        /* =========================
+           ESTILOS GENERALES
+           ========================= */
+        body {
+          background: #f7f7f9;
+        }
+
+        .table-sm td,
+        .table-sm th {
+          padding: .5rem .55rem;
+        }
+
+        #chat-mensajes {
+          border: 1px solid #ddd;
+          border-radius: .75rem;
+          padding: .75rem;
+          height: 280px;
+          overflow-y: auto;
+          background: #ffffff;
+        }
+
+        .modulo-card {
+          border: none;
+          border-radius: 1rem;
+          box-shadow: 0 6px 18px rgba(0,0,0,.06);
+        }
+
+        .detalle-label {
+          font-size: .85rem;
+          color: #6c757d;
+          margin-bottom: .2rem;
+        }
+
+        .detalle-box {
+          background: #f8f9fa;
+          border: 1px solid #e9ecef;
+          border-radius: .75rem;
+          padding: .75rem;
+          min-height: 64px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- =========================
+     NAVBAR DEL CLIENTE
+     ========================= -->
+<nav class="navbar navbar-dark app-navbar">
+    <div class="container-fluid">
+        <span class="navbar-brand">Construir - Mis trabajos</span>
+
+        <div class="d-flex gap-2">
+            <a class="btn btn-outline-light btn-sm" href="/cliente/cliente.html">Panel</a>
+            <a class="btn btn-outline-light btn-sm" href="/cliente/cliente-reputacion.html">Mi reputación</a>
+            <button class="btn btn-danger btn-sm" onclick="logout()">Cerrar sesión</button>
+        </div>
+    </div>
+</nav>
+
+<div class="page-container">
+
+    <!-- =========================
+         ENCABEZADO DE PÁGINA
+         ========================= -->
+    <div class="page-header d-flex justify-content-between align-items-start gap-3 flex-wrap">
+        <div>
+            <h1 class="page-title">Mis trabajos</h1>
+            <p class="page-subtitle">
+                Publicá trabajos, revisá cotizaciones, aceptá propuestas y conversá con el profesional asignado.
+            </p>
+        </div>
+
+        <button class="btn btn-outline-secondary btn-sm" onclick="cargarTodo()">
+            Actualizar trabajos
+        </button>
+    </div>
+
+    <!-- =========================
+         FORMULARIO PARA PUBLICAR TRABAJO
+         ========================= -->
+    <div class="card app-card">
+        <div class="card-header">Publicar trabajo</div>
+
+        <div class="card-body">
+            <div class="row g-3">
+                <!-- Título -->
+                <div class="col-md-12">
+                    <label class="form-label" for="titulo">Título</label>
+                    <input id="titulo" class="form-control" placeholder="Ej: Cambio de tablero eléctrico">
+                </div>
+
+                <!-- Descripción -->
+                <div class="col-md-12">
+                    <label class="form-label" for="descripcion">Descripción</label>
+                    <textarea id="descripcion" class="form-control" rows="3"
+                              placeholder="Detalle de la tarea, materiales, medidas, condiciones del trabajo, etc."></textarea>
+                </div>
+
+                <!-- Medidas -->
+                <div class="col-md-6">
+                    <label class="form-label" for="medidas">Medidas (opcional)</label>
+                    <input id="medidas" class="form-control" placeholder="Ej: 3x4 m">
+                </div>
+
+                <!-- Ubicación -->
+                <div class="col-md-6">
+                    <label class="form-label" for="ubicacion">Ubicación (opcional)</label>
+                    <input id="ubicacion" class="form-control" placeholder="Ej: Río Grande, Tierra del Fuego">
+                </div>
+
+                <!-- Tipo de profesional requerido -->
+                <div class="col-md-6">
+                    <label class="form-label" for="especialidadRequerida">
+                        Tipo de profesional requerido (opcional)
+                    </label>
+
+                    <select id="especialidadRequerida" class="form-select">
+                        <option value="">No estoy seguro / cualquiera</option>
+                        <option value="ELECTRICISTA">Electricista</option>
+                        <option value="GASISTA">Gasista</option>
+                        <option value="PLOMERO">Plomero</option>
+                        <option value="ALBAÑIL">Albañil</option>
+                        <option value="PINTOR">Pintor</option>
+                        <option value="MAESTRO_MAYOR_OBRA">Maestro mayor de obra</option>
+                        <option value="OTRO">Otro</option>
+                    </select>
+                </div>
+
+                <!-- Botón -->
+                <div class="col-12">
+                    <button class="btn btn-primary" onclick="publicarTrabajo()">Publicar trabajo</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =========================
+         MIS TRABAJOS
+         ========================= -->
+    <div class="card app-card">
+        <div class="card-header d-flex justify-content-between">
+            <span>Mis trabajos</span>
+            <button class="btn btn-sm btn-secondary" onclick="cargarMisTrabajos()">Recargar</button>
+        </div>
+
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-sm align-middle table-hover">
+                    <thead class="table-light">
+                    <tr>
+                        <th style="width:60px">ID</th>
+                        <th>Título</th>
+                        <th>Estado</th>
+                        <th>Profesional asignado</th>
+                        <th style="width:280px">Acciones</th>
+                    </tr>
+                    </thead>
+                    <tbody id="tabla-trabajos">
+                    <tr><td colspan="5">Cargando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- =========================
+         COTIZACIONES DEL TRABAJO SELECCIONADO
+         ========================= -->
+    <div class="card app-card">
+        <div class="card-header">Cotizaciones del trabajo seleccionado</div>
+
+        <div class="card-body">
+            <p class="mb-2">
+                <strong>Trabajo:</strong> <span id="info-trabajo">–</span>
+                &nbsp;&nbsp;—&nbsp;&nbsp;
+                <strong>Estado:</strong> <span id="info-estado">-</span>
+            </p>
+
+            <div class="table-responsive">
+                <table class="table table-sm align-middle table-hover">
+                    <thead class="table-light">
+                    <tr>
+                        <th style="width:60px">ID</th>
+                        <th>Profesional</th>
+                        <th style="width:100px">Monto</th>
+                        <th>Mensaje</th>
+                        <th style="width:120px">Estado</th>
+                        <th style="width:200px">Acciones</th>
+                    </tr>
+                    </thead>
+                    <tbody id="tabla-cotizaciones">
+                    <tr><td colspan="6">Seleccioná un trabajo para ver cotizaciones.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- =========================
+         TRABAJOS EN PROCESO + CHAT
+         ========================= -->
+    <div class="card app-card">
+        <div class="card-header d-flex justify-content-between">
+            <span>Trabajos en proceso y chat con el profesional</span>
+            <button class="btn btn-sm btn-secondary" onclick="cargarTrabajosEnProcesoCliente()">Recargar</button>
+        </div>
+
+        <div class="card-body">
+            <div class="row g-3">
+                <!-- Lista de trabajos en proceso -->
+                <div class="col-md-5">
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle table-hover">
+                            <thead class="table-light">
+                            <tr>
+                                <th style="width:60px">ID</th>
+                                <th>Título</th>
+                                <th>Profesional</th>
+                                <th style="width:110px"></th>
+                            </tr>
+                            </thead>
+                            <tbody id="tabla-trabajos-proceso">
+                            <tr><td colspan="4">Cargando...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Chat -->
+                <div class="col-md-7">
+                    <div class="mb-2"><strong>Trabajo:</strong> <span id="chat-trabajo-titulo">–</span></div>
+                    <div class="mb-2"><strong>Profesional:</strong> <span id="chat-trabajo-profesional">–</span></div>
+
+                    <div id="chat-mensajes">
+                        <div class="text-muted">Seleccioná un trabajo para abrir el chat.</div>
+                    </div>
+
+                    <div class="input-group mt-2">
+            <textarea id="chat-input"
+                      class="form-control"
+                      rows="1"
+                      maxlength="500"
+                      placeholder="Escribí un mensaje..."
+                      onkeydown="if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); enviarMensajeChatCliente(); }"></textarea>
+                        <button class="btn btn-primary" onclick="enviarMensajeChatCliente()">Enviar</button>
+                    </div>
+
+                    <div class="form-text">
+                        Máximo 500 caracteres. El chat se actualiza automáticamente cada 4 segundos.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- =========================
+     MODAL DE DETALLE DEL TRABAJO
+     ========================= -->
+<div class="modal fade" id="detalleTrabajoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    Detalle del trabajo <span id="detalle-id">-</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+
+            <div class="modal-body">
+                <div class="row g-3">
+                    <div class="col-12">
+                        <div class="detail-label">Título</div>
+                        <div class="detail-box" id="detalle-titulo">-</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Estado</div>
+                        <div class="detail-box" id="detalle-estado">-</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Profesional asignado</div>
+                        <div class="detail-box" id="detalle-profesional">-</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Ubicación</div>
+                        <div class="detail-box" id="detalle-ubicacion">-</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Medidas</div>
+                        <div class="detail-box" id="detalle-medidas">-</div>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="detail-label">Descripción</div>
+                        <div class="detail-box" id="detalle-descripcion">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // =========================================================
+    // VARIABLES GLOBALES
+    // =========================================================
+    let token = null;
+    let userId = null;
+    let trabajoSeleccionadoId = null;
+    let trabajoSeleccionadoEstado = null;
+    let chatTrabajoId = null;
+    let misTrabajosCache = [];
+
+    // Timer para refrescar automáticamente el chat del cliente
+    let chatRefreshTimer = null;
+
+    // Intervalo de actualización del chat: 4000 ms = 4 segundos
+    const CHAT_REFRESH_MS = 4000;
+
+    // Helpers
+    const $ = (id) => document.getElementById(id);
+    const safe = (s) => (s == null ? '' : String(s));
+
+    /**
+     * Decodifica el JWT.
+     */
+    function decodeJwt(t) {
+      return JSON.parse(atob(t.split('.')[1]));
+    }
+
+    /**
+     * Cierra sesión y vuelve a la portada pública.
+     */
+    function logout() {
+      localStorage.removeItem('jwt');
+      location.href = '/public/index.html';
+    }
+
+    /**
+     * Devuelve el id del profesional asignado.
+     * El DTO correcto usa profesionalAsignadoId.
+     */
+    function getProfesionalId(t) {
+      return t.profesionalAsignadoId ?? t.profesionalId ?? null;
+    }
+
+    /**
+     * Devuelve el nombre del profesional asignado.
+     * El DTO correcto usa profesionalAsignadoNombre.
+     */
+    function getProfesionalNombre(t) {
+      return safe(t.profesionalAsignadoNombre) || safe(t.profesionalNombre) || '-';
+    }
+
+    /**
+     * Devuelve una insignia visual según el estado del trabajo.
+     */
+    function badgeEstado(estado) {
+      const e = (estado || '').toUpperCase();
+
+      if (e === 'PUBLICADO') return '<span class="badge bg-primary">PUBLICADO</span>';
+      if (e === 'EN_PROCESO') return '<span class="badge bg-info text-dark">EN_PROCESO</span>';
+      if (e === 'FINALIZADO') return '<span class="badge bg-success">FINALIZADO</span>';
+      if (e === 'BAJA') return '<span class="badge bg-secondary">BAJA</span>';
+
+      return safe(estado) || '-';
+    }
+
+    // =========================================================
+    // PUBLICAR TRABAJO
+    // =========================================================
+    async function publicarTrabajo() {
+      const titulo = $('titulo').value.trim();
+      const descripcion = $('descripcion').value.trim();
+      const medidas = $('medidas').value.trim();
+      const ubicacion = $('ubicacion').value.trim();
+
+        // Tipo de profesional requerido.
+        // Es opcional: si queda vacío, se manda null.
+        const especialidadRequerida = $('especialidadRequerida').value || null;
+
+      if (!titulo) {
+        alert('El título es obligatorio.');
+        return;
+      }
+
+      const body = {
+      clienteId: userId,
+      titulo,
+      descripcion,
+      medidas: medidas || null,
+      ubicacion: ubicacion || null,
+      especialidadRequerida
+      };
+
+      const resp = await fetch('/api/trabajos', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify(body)
+      });
+
+      if (!resp.ok) {
+        const txt = await resp.text();
+        alert('No se pudo publicar el trabajo: ' + txt);
+        return;
+      }
+
+      alert('Trabajo publicado con éxito.');
+
+      $('titulo').value = '';
+      $('descripcion').value = '';
+      $('medidas').value = '';
+      $('ubicacion').value = '';
+      $('especialidadRequerida').value = '';
+
+      await cargarTodo();
+    }
+
+    // =========================================================
+    // MIS TRABAJOS
+    // =========================================================
+    async function cargarMisTrabajos() {
+      const tbody = $('tabla-trabajos');
+      tbody.innerHTML = '<tr><td colspan="5">Cargando...</td></tr>';
+
+      const resp = await fetch('/api/trabajos', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+
+      if (!resp.ok) {
+        tbody.innerHTML = '<tr><td colspan="5">Error al cargar trabajos.</td></tr>';
+        return;
+      }
+
+      const trabajos = await resp.json();
+
+      const mis = (Array.isArray(trabajos) ? trabajos : [])
+        .filter(t => Number(t.clienteId) === Number(userId) && (t.estado || '').toUpperCase() !== 'BAJA')
+        .sort((a, b) => Number(b.id) - Number(a.id));
+
+      misTrabajosCache = mis;
+
+      if (!mis.length) {
+        tbody.innerHTML = '<tr><td colspan="5">No tenés trabajos publicados.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = mis.map(t => {
+        const profesionalId = getProfesionalId(t);
+        const profesionalNombre = getProfesionalNombre(t);
+
+        let acciones = `
+          <button class="btn btn-sm btn-outline-secondary"
+                  onclick="verDetalleTrabajo(${t.id})">
+            Ver detalle
+          </button>
+
+          <button class="btn btn-sm btn-outline-primary"
+                  onclick="seleccionarTrabajo(${t.id}, '${safe(t.titulo).replace(/'/g,"\\'")}', '${safe(t.estado)}')">
+            Ver cotizaciones
+          </button>
+        `;
+
+        // Solo se puede dar de baja si no está en proceso ni finalizado
+        if ((t.estado || '').toUpperCase() !== 'EN_PROCESO' && (t.estado || '').toUpperCase() !== 'FINALIZADO') {
+          acciones += `
+            <button class="btn btn-sm btn-outline-danger"
+                    onclick="darDeBaja(${t.id}, '${safe(t.estado)}')">
+              Dar de baja
+            </button>
+          `;
+        }
+
+        // Solo se puede finalizar y calificar si está en proceso y tiene profesional asignado
+        if ((t.estado || '').toUpperCase() === 'EN_PROCESO' && profesionalId != null) {
+          acciones += `
+            <button class="btn btn-sm btn-success"
+                    onclick="finalizarYCalificar(${t.id}, ${profesionalId}, '${safe(t.titulo).replace(/'/g,"\\'")}')">
+              Finalizar y calificar
+            </button>
+          `;
+        }
+
+        return `
+          <tr>
+            <td>${t.id}</td>
+            <td>${safe(t.titulo)}</td>
+            <td>${badgeEstado(t.estado)}</td>
+            <td>${profesionalNombre}</td>
+            <td class="d-flex gap-2 flex-wrap">${acciones}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    /**
+     * Muestra detalle completo del trabajo del cliente.
+     */
+    function verDetalleTrabajo(trabajoId) {
+      const trabajo = misTrabajosCache.find(t => Number(t.id) === Number(trabajoId));
+      if (!trabajo) return;
+
+      const profesionalNombre = getProfesionalNombre(trabajo);
+
+      $('detalle-id').textContent = '#' + (trabajo.id ?? '-');
+      $('detalle-titulo').textContent = safe(trabajo.titulo) || '-';
+      $('detalle-estado').innerHTML = badgeEstado(trabajo.estado);
+      $('detalle-profesional').textContent = profesionalNombre === '-' ? 'Sin asignar' : profesionalNombre;
+      $('detalle-ubicacion').textContent = safe(trabajo.ubicacion) || 'No informada';
+      $('detalle-medidas').textContent = safe(trabajo.medidas) || 'No informadas';
+      $('detalle-descripcion').textContent = safe(trabajo.descripcion) || 'Sin descripción.';
+
+      const modal = new bootstrap.Modal(document.getElementById('detalleTrabajoModal'));
+      modal.show();
+    }
+
+    /**
+     * Baja lógica de trabajo.
+     */
+    async function darDeBaja(id, estado) {
+      const e = (estado || '').toUpperCase();
+
+      if (e === 'EN_PROCESO' || e === 'FINALIZADO') {
+        alert('No se puede dar de baja un trabajo en proceso o finalizado.');
+        return;
+      }
+
+      if (!confirm('¿Seguro que querés dar de baja este trabajo?')) return;
+
+      const resp = await fetch(`/api/trabajos/${id}/baja`, {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+
+      if (!resp.ok) {
+        alert('No se pudo dar de baja: ' + await resp.text());
+        return;
+      }
+
+      alert('Trabajo dado de baja.');
+      await cargarTodo();
+      limpiarCotizaciones();
+    }
+
+    /**
+     * Finaliza el trabajo y luego permite calificar al profesional.
+     */
+    async function finalizarYCalificar(trabajoId, profesionalId, titulo) {
+      if (!profesionalId) {
+        alert('Este trabajo no tiene un profesional asignado.');
+        return;
+      }
+
+      if (!confirm(`¿Marcar el trabajo "${titulo}" como FINALIZADO?`)) return;
+
+      const resp = await fetch(`/api/trabajos/${trabajoId}/finalizar`, {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+
+      if (!resp.ok) {
+        alert('No se pudo finalizar el trabajo: ' + await resp.text());
+        return;
+      }
+
+      alert('Trabajo finalizado con éxito. Ahora podés calificar al profesional.');
+      await calificarProfesional(trabajoId, profesionalId);
+      await cargarTodo();
+    }
+
+    /**
+     * Registra una calificación del cliente hacia el profesional.
+     */
+    async function calificarProfesional(trabajoId, profesionalId) {
+      let puntajeStr = prompt('Del 1 al 5, ¿cómo calificarías al profesional?');
+      if (puntajeStr == null) return;
+
+      const puntaje = parseInt(puntajeStr, 10);
+      if (isNaN(puntaje) || puntaje < 1 || puntaje > 5) {
+        alert('El puntaje debe ser un número entre 1 y 5.');
+        return;
+      }
+
+      const comentario = prompt('Comentario opcional:') || '';
+
+      const body = {
+        autorId: userId,
+        destinatarioId: profesionalId,
+        trabajoId,
+        puntaje,
+        comentario
+      };
+
+      const resp = await fetch('/api/calificaciones', {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+      });
+
+      if (!resp.ok) {
+        alert('No se pudo registrar la calificación: ' + await resp.text());
+        return;
+      }
+
+      alert('Calificación registrada con éxito.');
+    }
+
+    // =========================================================
+    // COTIZACIONES
+    // =========================================================
+    function limpiarCotizaciones() {
+      trabajoSeleccionadoId = null;
+      trabajoSeleccionadoEstado = null;
+      $('info-trabajo').textContent = '–';
+      $('info-estado').textContent = '-';
+      $('tabla-cotizaciones').innerHTML = '<tr><td colspan="6">Seleccioná un trabajo para ver cotizaciones.</td></tr>';
+    }
+
+    /**
+     * Selecciona un trabajo del cliente para ver cotizaciones.
+     */
+    async function seleccionarTrabajo(id, titulo, estado) {
+      trabajoSeleccionadoId = id;
+      trabajoSeleccionadoEstado = estado;
+      $('info-trabajo').textContent = `${id} — ${titulo}`;
+      $('info-estado').textContent = estado;
+      await cargarCotizaciones(id);
+    }
+
+    /**
+     * Carga las cotizaciones del trabajo seleccionado.
+     */
+    async function cargarCotizaciones(trabajoId) {
+      const tbody = $('tabla-cotizaciones');
+      tbody.innerHTML = '<tr><td colspan="6">Cargando...</td></tr>';
+
+      const resp = await fetch(`/api/trabajos/${trabajoId}/postulaciones`, {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+
+      if (!resp.ok) {
+        tbody.innerHTML = '<tr><td colspan="6">Error al cargar cotizaciones.</td></tr>';
+        return;
+      }
+
+      const cotizaciones = await resp.json();
+
+      if (!Array.isArray(cotizaciones) || !cotizaciones.length) {
+        tbody.innerHTML = '<tr><td colspan="6">Este trabajo todavía no tiene cotizaciones.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = cotizaciones.map(c => {
+        const estadoCotizacion = safe(c.estado).toUpperCase();
+        const trabajoEstado = safe(trabajoSeleccionadoEstado).toUpperCase();
+
+        let accion = '';
+
+        // Solo se permite aceptar si el trabajo sigue PUBLICADO y la cotización está PENDIENTE
+        if (trabajoEstado === 'PUBLICADO' && estadoCotizacion === 'PENDIENTE') {
+          accion = `
+            <button class="btn btn-sm btn-success"
+                    onclick="aceptarCotizacion(${c.id})">
+              Aceptar
+            </button>
+          `;
+        } else if (estadoCotizacion === 'ACEPTADA') {
+          accion = `<button class="btn btn-sm btn-secondary" disabled>Aceptada</button>`;
+        } else if (estadoCotizacion === 'RECHAZADA') {
+          accion = `<button class="btn btn-sm btn-secondary" disabled>Rechazada</button>`;
+        } else {
+          accion = `<button class="btn btn-sm btn-secondary" disabled>No disponible</button>`;
+        }
+
+        return `
+          <tr>
+            <td>${c.id}</td>
+            <td>${safe(c.profesionalId)}</td>
+            <td>${safe(c.monto)} ${safe(c.moneda) || 'ARS'}</td>
+            <td>${safe(c.mensaje) || '-'}</td>
+            <td>${safe(c.estado) || '-'}</td>
+            <td class="d-flex gap-2 flex-wrap">${accion}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    /**
+     * Acepta una cotización y deja el trabajo EN_PROCESO.
+     */
+    async function aceptarCotizacion(cotizacionId) {
+      if (!trabajoSeleccionadoId) {
+        alert('Primero seleccioná un trabajo.');
+        return;
+      }
+
+      const resp = await fetch(`/api/trabajos/postulaciones/${cotizacionId}/aceptar`, {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+
+      if (!resp.ok) {
+        alert('No se pudo aceptar la cotización: ' + await resp.text());
+        return;
+      }
+
+      alert('Cotización aceptada. El trabajo quedó en proceso.');
+
+      trabajoSeleccionadoEstado = 'EN_PROCESO';
+      $('info-estado').textContent = 'EN_PROCESO';
+
+      await cargarTodo();
+      await cargarCotizaciones(trabajoSeleccionadoId);
+    }
+
+    // =========================================================
+    // EN PROCESO + CHAT
+    // =========================================================
+    async function cargarTrabajosEnProcesoCliente() {
+      const tbody = $('tabla-trabajos-proceso');
+      tbody.innerHTML = '<tr><td colspan="4">Cargando...</td></tr>';
+
+      const resp = await fetch('/api/trabajos', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+
+      if (!resp.ok) {
+        tbody.innerHTML = '<tr><td colspan="4">Error al cargar trabajos.</td></tr>';
+        return;
+      }
+
+      const trabajos = await resp.json();
+
+      const enProceso = (Array.isArray(trabajos) ? trabajos : [])
+        .filter(t => Number(t.clienteId) === Number(userId) && (t.estado || '').toUpperCase() === 'EN_PROCESO')
+        .sort((a, b) => Number(b.id) - Number(a.id));
+
+      if (!enProceso.length) {
+        tbody.innerHTML = '<tr><td colspan="4">No tenés trabajos en proceso.</td></tr>';
+        resetChatPanel();
+        return;
+      }
+
+      tbody.innerHTML = enProceso.map(t => {
+        const profesionalNombre = getProfesionalNombre(t);
+        const tituloEsc = safe(t.titulo).replace(/'/g, "\\'");
+        const profEsc = profesionalNombre.replace(/'/g, "\\'");
+
+        return `
+          <tr>
+            <td>${t.id}</td>
+            <td>${safe(t.titulo)}</td>
+            <td>${profesionalNombre}</td>
+            <td>
+              <button class="btn btn-sm btn-outline-primary"
+                      onclick="abrirChatCliente(${t.id}, '${tituloEsc}', '${profEsc}')">
+                Abrir chat
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    /**
+     * Limpia el panel de chat.
+     */
+    function resetChatPanel() {
+      detenerAutoRefreshChatCliente();
+
+      chatTrabajoId = null;
+      $('chat-trabajo-titulo').textContent = '–';
+      $('chat-trabajo-profesional').textContent = '–';
+      $('chat-mensajes').innerHTML = '<div class="text-muted">Seleccioná un trabajo para abrir el chat.</div>';
+      $('chat-input').value = '';
+    }
+
+    /**
+     * Abre el chat del trabajo seleccionado.
+     * También inicia el refresco automático.
+     */
+    function abrirChatCliente(id, titulo, profesionalNombre) {
+      chatTrabajoId = id;
+      $('chat-trabajo-titulo').textContent = `${id} — ${titulo}`;
+      $('chat-trabajo-profesional').textContent = profesionalNombre || '-';
+
+      cargarMensajesChatCliente();
+      iniciarAutoRefreshChatCliente();
+    }
+
+    /**
+     * Inicia el refresco automático del chat del cliente.
+     */
+    function iniciarAutoRefreshChatCliente() {
+      detenerAutoRefreshChatCliente();
+
+      chatRefreshTimer = setInterval(() => {
+        if (!chatTrabajoId) return;
+        if (document.hidden) return;
+
+        cargarMensajesChatCliente(true);
+      }, CHAT_REFRESH_MS);
+    }
+
+    /**
+     * Detiene el refresco automático del chat del cliente.
+     */
+    function detenerAutoRefreshChatCliente() {
+      if (chatRefreshTimer) {
+        clearInterval(chatRefreshTimer);
+        chatRefreshTimer = null;
+      }
+    }
+
+    /**
+     * Carga mensajes del chat para el trabajo seleccionado.
+     * El parámetro silencioso evita que el chat parpadee cada vez que se refresca solo.
+     */
+    async function cargarMensajesChatCliente(silencioso = false) {
+      if (!chatTrabajoId) return;
+
+      const cont = $('chat-mensajes');
+
+      if (!silencioso) {
+        cont.innerHTML = '<div class="text-muted">Cargando mensajes...</div>';
+      }
+
+      const resp = await fetch(`/api/chat/trabajo/${chatTrabajoId}`, {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+
+      if (!resp.ok) {
+        if (!silencioso) {
+          cont.innerHTML = `<div class="text-danger">Error al cargar el chat.</div>`;
+        }
+        return;
+      }
+
+      const mensajes = await resp.json();
+
+      if (!Array.isArray(mensajes) || !mensajes.length) {
+        cont.innerHTML = '<div class="text-muted">Todavía no hay mensajes en este chat.</div>';
+        return;
+      }
+
+      cont.innerHTML = '';
+
+      mensajes.forEach(m => {
+        const soyYo = Number(m.remitenteId) === Number(userId);
+
+        const fila = document.createElement('div');
+        fila.className = 'mb-2 d-flex ' + (soyYo ? 'justify-content-end' : 'justify-content-start');
+
+        const burbuja = document.createElement('div');
+        burbuja.className = 'p-2 rounded-3 ' + (soyYo ? 'bg-primary text-white' : 'bg-light');
+        burbuja.style.maxWidth = '75%';
+
+        const nombre = m.remitenteNombre || m.remitenteRol || '';
+        const fecha = m.enviadoEn ? m.enviadoEn.replace('T', ' ').slice(0, 16) : '';
+
+        burbuja.innerHTML = `
+          <div class="small fw-bold">${safe(nombre)}</div>
+          <div>${safe(m.contenido)}</div>
+          <div class="small text-end ${soyYo ? 'text-white-50' : 'text-muted'}">${fecha}</div>
+        `;
+
+        fila.appendChild(burbuja);
+        cont.appendChild(fila);
+      });
+
+      cont.scrollTop = cont.scrollHeight;
+    }
+
+    /**
+     * Envía un mensaje del cliente.
+     */
+    async function enviarMensajeChatCliente() {
+      if (!chatTrabajoId) {
+        alert('Primero seleccioná un trabajo en proceso.');
+        return;
+      }
+
+      const texto = $('chat-input').value.trim();
+      if (!texto) return;
+
+      if (texto.length > 500) {
+        alert('El mensaje no puede superar los 500 caracteres.');
+        return;
+      }
+
+      const body = {
+        trabajoId: chatTrabajoId,
+        remitenteId: userId,
+        remitenteRol: 'CLIENTE',
+        contenido: texto
+      };
+
+      const resp = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify(body)
+      });
+
+      if (!resp.ok) {
+        alert('No se pudo enviar el mensaje: ' + await resp.text());
+        return;
+      }
+
+      $('chat-input').value = '';
+      await cargarMensajesChatCliente();
+    }
+
+    // =========================================================
+    // CARGA GENERAL DE LA PÁGINA
+    // =========================================================
+    async function cargarTodo() {
+      await Promise.all([
+        cargarMisTrabajos(),
+        cargarTrabajosEnProcesoCliente()
+      ]);
+    }
+
+    // =========================================================
+    // INICIO DE LA PÁGINA
+    // =========================================================
+    document.addEventListener('DOMContentLoaded', async () => {
+      token = localStorage.getItem('jwt');
+
+      // Si no hay token, volver al login público
+      if (!token) {
+        location.href = '/public/login.html';
+        return;
+      }
+
+      const payload = decodeJwt(token);
+      userId = payload.userId;
+
+      // Seguridad básica de rol
+      if (payload.rol !== 'CLIENTE') {
+        alert('Esta vista es solo para clientes.');
+        logout();
+        return;
+      }
+
+      await cargarTodo();
+    });
+
+    /**
+     * Detiene el refresco automático al salir de la página.
+     */
+    window.addEventListener('beforeunload', () => {
+      detenerAutoRefreshChatCliente();
+    });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <!-- =========================
+         CONFIGURACIÓN BÁSICA
+         ========================= -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Construx-Com - Login</title>
+
+    <!-- =========================
+         BOOTSTRAP
+         ========================= -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        /* =========================
+           ESTILOS GENERALES
+           ========================= */
+        body {
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background:
+                linear-gradient(rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.35)),
+                url('/images/fondo-login.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        /* Tarjeta principal del login */
+        .login-card {
+            width: 100%;
+            max-width: 460px;
+            background: rgba(255, 255, 255, 0.96);
+            border-radius: 18px;
+            box-shadow: 0 14px 36px rgba(0, 0, 0, 0.16);
+            border: none;
+            overflow: hidden;
+        }
+
+        /* Cabecera con nombre del sistema */
+        .brand-box {
+            text-align: center;
+            padding: 2rem 1rem 1rem;
+        }
+
+        .brand-name {
+            font-size: 1.6rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            color: #1f2937;
+        }
+
+        /* Título y subtítulo */
+        .login-title {
+            font-size: 2rem;
+            font-weight: 700;
+            text-align: center;
+            margin: 0.8rem 0 0.4rem;
+            color: #111827;
+        }
+
+        .login-subtitle {
+            text-align: center;
+            color: #6b7280;
+            font-size: 0.95rem;
+            margin-bottom: 1.2rem;
+        }
+
+        /* Links pequeños */
+        .small-link {
+            font-size: 0.9rem;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .small-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card login-card">
+    <!-- =========================
+         MARCA DEL SISTEMA
+         ========================= -->
+    <div class="brand-box">
+        <div class="brand-name">CONSTRUX-COM</div>
+    </div>
+
+    <!-- =========================
+         FORMULARIO DE LOGIN
+         ========================= -->
+    <div class="card-body px-4 pb-4 pt-1">
+        <h2 class="login-title">Iniciar sesión</h2>
+        <p class="login-subtitle">Ingresá con tu email y contraseña para acceder al sistema</p>
+
+        <!-- Campo email -->
+        <div class="mt-3 mb-3">
+            <label for="loginEmail" class="form-label">Email</label>
+            <input type="email" id="loginEmail" class="form-control" placeholder="tu@email.com">
+        </div>
+
+        <!-- Campo contraseña -->
+        <div class="mb-3">
+            <label for="loginPassword" class="form-label">Contraseña</label>
+            <input type="password" id="loginPassword" class="form-control" placeholder="********">
+        </div>
+
+        <!-- Checkbox recordar usuario -->
+        <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="rememberEmail">
+            <label class="form-check-label" for="rememberEmail">
+                Recordar usuario
+            </label>
+        </div>
+
+        <!-- Botón principal -->
+        <button class="btn btn-primary w-100 mb-3" onclick="login()">
+            Ingresar
+        </button>
+
+        <!-- Links secundarios -->
+        <div class="d-flex flex-column align-items-center gap-2">
+            <a class="small-link text-primary" href="/public/registro.html">
+                No tengo cuenta, quiero registrarme
+            </a>
+
+            <a class="small-link text-secondary" href="/public/index.html">
+                Volver al inicio
+            </a>
+
+            <span class="text-muted small" style="font-size: 0.82rem;">
+                No recuerdo mi contraseña y/o usuario
+            </span>
+        </div>
+    </div>
+</div>
+
+<script>
+    /**
+     * Al abrir la página, si el usuario antes eligió
+     * "Recordar usuario", se carga automáticamente el email.
+     */
+    document.addEventListener('DOMContentLoaded', () => {
+        const savedEmail = localStorage.getItem('rememberedEmail');
+
+        if (savedEmail) {
+            document.getElementById('loginEmail').value = savedEmail;
+            document.getElementById('rememberEmail').checked = true;
+        }
+    });
+
+    /**
+     * Hace el login contra la API REST.
+     * Si sale bien:
+     * - guarda el JWT
+     * - recuerda el email si el usuario lo pidió
+     * - redirige según el rol
+     */
+    async function login() {
+        const email = document.getElementById('loginEmail').value.trim();
+        const password = document.getElementById('loginPassword').value;
+
+        // Validación básica del lado cliente
+        if (!email || !password) {
+            alert('Email y contraseña son obligatorios.');
+            return;
+        }
+
+        const body = { email, password };
+
+        try {
+            const resp = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+
+            // Manejo amigable de errores de autenticación
+            if (!resp.ok) {
+                if (resp.status === 401 || resp.status === 403) {
+                    alert('Email o contraseña incorrectos.');
+                    return;
+                }
+
+                const txt = await resp.text();
+                alert('No se pudo iniciar sesión. Intentá nuevamente.');
+                console.error('Error login:', txt);
+                return;
+            }
+
+            const data = await resp.json(); // { token, email, rol }
+
+            // Guardar token JWT
+            localStorage.setItem('jwt', data.token);
+
+            // Recordar email si el usuario lo pidió
+            const remember = document.getElementById('rememberEmail').checked;
+            if (remember) {
+                localStorage.setItem('rememberedEmail', email);
+            } else {
+                localStorage.removeItem('rememberedEmail');
+            }
+
+            // Redirección según rol
+            if (data.rol === 'CLIENTE') {
+                window.location.href = '/cliente/cliente.html';
+            } else if (data.rol === 'PROFESIONAL') {
+                window.location.href = '/profesional/profesional.html';
+            } else {
+                alert('Rol desconocido recibido desde el servidor.');
+            }
+
+        } catch (err) {
+            console.error(err);
+            alert('No se pudo conectar con el servidor.');
+        }
+    }
+</script>
+
+</body>
+</html>

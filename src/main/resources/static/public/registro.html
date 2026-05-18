@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <!-- =========================
+       CONFIGURACIÓN BÁSICA
+       ========================= -->
+  <meta charset="utf-8">
+  <title>Construxcom - Registro</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- =========================
+       BOOTSTRAP 5
+       Framework CSS para diseño responsivo
+       ========================= -->
+  <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+  >
+
+  <style>
+    /* =========================
+       ESTILOS GENERALES
+       ========================= */
+    body {
+      background: #f5f6fa;
+    }
+
+    /* Título de marca */
+    .brand-title {
+      letter-spacing: 2px;
+      font-weight: 600;
+    }
+
+    /* Bordes suaves de la tarjeta */
+    .card {
+      border-radius: 1.25rem;
+    }
+  </style>
+</head>
+<body>
+
+<!-- =========================
+     NAVBAR SUPERIOR
+     Ahora apunta a /public/index.html
+     ========================= -->
+<nav class="navbar navbar-dark bg-dark">
+  <div class="container">
+    <a class="navbar-brand" href="/public/index.html">
+      CONSTRUXCOM
+    </a>
+  </div>
+</nav>
+
+<!-- =========================
+     CONTENIDO PRINCIPAL
+     ========================= -->
+<main class="container my-5" style="max-width: 900px;">
+  <div class="card shadow-sm">
+    <div class="card-body p-4 p-md-5">
+
+      <!-- =========================
+           CABECERA
+           ========================= -->
+      <div class="text-center mb-4">
+        <div class="brand-title h4 mb-2">CONSTRUXCOM</div>
+        <div class="h5 text-muted">Crear cuenta</div>
+      </div>
+
+      <!-- =========================
+           PESTAÑAS DE REGISTRO
+           Cliente / Profesional
+           ========================= -->
+      <ul class="nav nav-tabs mb-4" id="registroTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active"
+                  id="tab-cliente-btn"
+                  data-bs-toggle="tab"
+                  data-bs-target="#tab-cliente"
+                  type="button"
+                  role="tab">
+            Cliente
+          </button>
+        </li>
+
+        <li class="nav-item" role="presentation">
+          <button class="nav-link"
+                  id="tab-profesional-btn"
+                  data-bs-toggle="tab"
+                  data-bs-target="#tab-profesional"
+                  type="button"
+                  role="tab">
+            Profesional
+          </button>
+        </li>
+      </ul>
+
+      <div class="tab-content">
+        <!-- ==================================================
+             FORMULARIO DE REGISTRO DE CLIENTE
+             ================================================== -->
+        <div class="tab-pane fade show active" id="tab-cliente" role="tabpanel">
+          <form id="form-cliente">
+            <div class="row g-3">
+
+              <!-- Nombre -->
+              <div class="col-md-6">
+                <label for="cli-nombre" class="form-label">Nombre</label>
+                <input type="text" id="cli-nombre" class="form-control" required>
+              </div>
+
+              <!-- Apellido -->
+              <div class="col-md-6">
+                <label for="cli-apellido" class="form-label">Apellido</label>
+                <input type="text" id="cli-apellido" class="form-control" required>
+              </div>
+
+              <!-- Email -->
+              <div class="col-md-6">
+                <label for="cli-email" class="form-label">Email</label>
+                <input type="email" id="cli-email" class="form-control" required>
+              </div>
+
+              <!-- Password -->
+              <div class="col-md-6">
+                <label for="cli-password" class="form-label">Password</label>
+                <input type="password" id="cli-password" class="form-control" required>
+              </div>
+
+              <!-- Teléfono -->
+              <div class="col-md-6">
+                <label for="cli-telefono" class="form-label">Teléfono (opcional)</label>
+                <input type="text" id="cli-telefono" class="form-control">
+              </div>
+
+              <!-- Dirección -->
+              <div class="col-md-6">
+                <label for="cli-direccion" class="form-label">Dirección (opcional)</label>
+                <input type="text" id="cli-direccion" class="form-control">
+              </div>
+
+              <!-- Botón -->
+              <div class="col-12 mt-3">
+                <button type="submit" class="btn btn-primary w-100">
+                  Crear cuenta de Cliente
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <!-- ==================================================
+             FORMULARIO DE REGISTRO DE PROFESIONAL
+             ================================================== -->
+        <div class="tab-pane fade" id="tab-profesional" role="tabpanel">
+          <form id="form-profesional">
+            <div class="row g-3">
+
+              <!-- Nombre -->
+              <div class="col-md-6">
+                <label for="prof-nombre" class="form-label">Nombre</label>
+                <input type="text" id="prof-nombre" class="form-control" required>
+              </div>
+
+              <!-- Apellido -->
+              <div class="col-md-6">
+                <label for="prof-apellido" class="form-label">Apellido</label>
+                <input type="text" id="prof-apellido" class="form-control" required>
+              </div>
+
+              <!-- Email -->
+              <div class="col-md-6">
+                <label for="prof-email" class="form-label">Email</label>
+                <input type="email" id="prof-email" class="form-control" required>
+              </div>
+
+              <!-- Password -->
+              <div class="col-md-6">
+                <label for="prof-password" class="form-label">Password</label>
+                <input type="password" id="prof-password" class="form-control" required>
+              </div>
+
+              <!-- Teléfono -->
+              <div class="col-md-6">
+                <label for="prof-telefono" class="form-label">Teléfono (opcional)</label>
+                <input type="text" id="prof-telefono" class="form-control">
+              </div>
+
+              <!-- Dirección -->
+              <div class="col-md-6">
+                <label for="prof-direccion" class="form-label">Dirección (opcional)</label>
+                <input type="text" id="prof-direccion" class="form-control">
+              </div>
+
+              <!-- Especialidad -->
+              <div class="col-md-6">
+                <label for="prof-especialidad" class="form-label">Especialidad</label>
+                <select id="prof-especialidad" class="form-select" required>
+                  <option value="" selected disabled>
+                    Seleccioná tu especialidad…
+                  </option>
+                  <option value="ELECTRICISTA">Electricista</option>
+                  <option value="GASISTA">Gasista</option>
+                  <option value="ALBAÑIL">Albañil</option>
+                  <option value="PLOMERO">Plomero</option>
+                  <option value="PINTOR">Pintor</option>
+                  <option value="MAESTRO_MAYOR_OBRA">Maestro mayor de obra</option>
+                  <option value="OTRO">Otro</option>
+                </select>
+
+                <div class="form-text">
+                  Los valores se envían tal cual al enum
+                  <code>Especialidad</code> del backend.
+                </div>
+              </div>
+
+              <!-- Experiencia -->
+              <div class="col-md-6">
+                <label for="prof-experiencia" class="form-label">
+                  Años de experiencia
+                </label>
+                <input type="number"
+                       id="prof-experiencia"
+                       class="form-control"
+                       min="0"
+                       step="1">
+              </div>
+
+              <!-- Botón -->
+              <div class="col-12 mt-3">
+                <button type="submit" class="btn btn-primary w-100">
+                  Crear cuenta de Profesional
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- =========================
+           LINK A LOGIN
+           Ahora apunta a /public/login.html
+           ========================= -->
+      <div class="text-center mt-4">
+        <a href="/public/login.html">Ya tengo cuenta, ir a Login</a>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- =========================
+     BOOTSTRAP JS
+     Necesario para tabs y componentes
+     ========================= -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  // =========================================================
+  // FUNCIÓN AUXILIAR PARA HACER POST JSON
+  // =========================================================
+  async function postJson(url, data) {
+    const resp = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+
+    if (!resp.ok) {
+      const text = await resp.text();
+      throw new Error(text || ('Error HTTP ' + resp.status));
+    }
+
+    // Si el backend devuelve JSON, lo tomamos.
+    // Si no devuelve nada, retornamos null.
+    try {
+      return await resp.json();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  // =========================================================
+  // REGISTRO DE CLIENTE
+  // =========================================================
+  document.getElementById('form-cliente').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+
+    // Armado del payload que se envía al backend
+    const payload = {
+      nombre: document.getElementById('cli-nombre').value.trim(),
+      apellido: document.getElementById('cli-apellido').value.trim(),
+      email: document.getElementById('cli-email').value.trim(),
+      password: document.getElementById('cli-password').value.trim(),
+      telefono: document.getElementById('cli-telefono').value.trim(),
+      direccion: document.getElementById('cli-direccion').value.trim()
+    };
+
+    // Validación básica del lado cliente
+    if (!payload.nombre || !payload.apellido || !payload.email || !payload.password) {
+      alert('Nombre, apellido, email y password son obligatorios.');
+      return;
+    }
+
+    try {
+      // Llamada al endpoint de registro de cliente
+      await postJson('/api/auth/registro/cliente', payload);
+
+      // Mensaje de éxito
+      alert('Cliente registrado con éxito. Ahora podés iniciar sesión.');
+
+      // Redirección corregida al login público
+      window.location.href = '/public/login.html';
+    } catch (e) {
+      console.error(e);
+      alert('Error al registrar cliente: ' + e.message);
+    }
+  });
+
+  // =========================================================
+  // REGISTRO DE PROFESIONAL
+  // =========================================================
+  document.getElementById('form-profesional').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+
+    // Especialidad elegida
+    const especialidad = document.getElementById('prof-especialidad').value;
+
+    // Armado del payload
+    const payload = {
+      nombre: document.getElementById('prof-nombre').value.trim(),
+      apellido: document.getElementById('prof-apellido').value.trim(),
+      email: document.getElementById('prof-email').value.trim(),
+      password: document.getElementById('prof-password').value.trim(),
+      telefono: document.getElementById('prof-telefono').value.trim(),
+      direccion: document.getElementById('prof-direccion').value.trim(),
+      especialidad: especialidad,
+      experiencia: document.getElementById('prof-experiencia').value.trim()
+    };
+
+    // Validación básica del lado cliente
+    if (!payload.nombre || !payload.apellido || !payload.email || !payload.password) {
+      alert('Nombre, apellido, email y password son obligatorios.');
+      return;
+    }
+
+    if (!payload.especialidad) {
+      alert('Seleccioná una especialidad.');
+      return;
+    }
+
+    try {
+      // Llamada al endpoint de registro de profesional
+      await postJson('/api/auth/registro/profesional', payload);
+
+      // Mensaje de éxito
+      alert('Profesional registrado con éxito. Ahora podés iniciar sesión.');
+
+      // Redirección corregida al login público
+      window.location.href = '/public/login.html';
+    } catch (e) {
+      console.error(e);
+      alert('Error al registrar profesional: ' + e.message);
+    }
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Construir - Profesional</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <style>
+    body { background-color: #f5f5f5; }
+    .badge-estado { font-size: .75rem; }
+    #chat-mensajes-prof { border:1px solid #ddd;border-radius:.5rem;padding:.5rem;height:260px;overflow-y:auto;background:#fff; }
+  </style>
+</head>
+<body class="bg-light">
+<nav class="navbar navbar-dark bg-dark mb-4">
+  <div class="container-fluid">
+    <span class="navbar-brand mb-0 h1">Construir - Profesional</span>
+    <div class="d-flex gap-2">
+      <button class="btn btn-outline-light btn-sm" onclick="irCliente()">Ir a vista cliente</button>
+      <button class="btn btn-outline-danger btn-sm" onclick="logout()">Cerrar sesión</button>
+    </div>
+  </div>
+</nav>
+
+<div class="container mb-5">
+  <!-- Sesión -->
+  <div class="card mb-4">
+    <div class="card-header">Sesión</div>
+    <div class="card-body">
+      <p><strong>Usuario:</strong> <span id="sesion-email">-</span></p>
+      <p><strong>Rol:</strong> <span id="sesion-rol">-</span></p>
+      <p><strong>ID (claim):</strong> <span id="sesion-id">-</span></p>
+    </div>
+  </div>
+
+  <!-- Publicados -->
+  <div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <span>Trabajos publicados por clientes</span>
+      <button class="btn btn-sm btn-secondary" onclick="cargarTrabajosPublicados()">Actualizar</button>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-sm align-middle">
+          <thead><tr><th>ID</th><th>Título</th><th>Cliente</th><th>Estado</th><th>Acciones</th></tr></thead>
+          <tbody id="tabla-trabajos-publicados"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- EN_PROCESO + chat -->
+  <div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <span>Mis trabajos asignados (EN_PROCESO) y chat con el cliente</span>
+      <button class="btn btn-sm btn-secondary" onclick="cargarTrabajosAsignados()">Actualizar</button>
+    </div>
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-5 mb-3 mb-md-0">
+          <h6>Trabajos EN_PROCESO</h6>
+          <div class="table-responsive">
+            <table class="table table-sm align-middle">
+              <thead><tr><th>ID</th><th>Título</th><th>Cliente</th><th></th></tr></thead>
+              <tbody id="tabla-trabajos-asignados"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="col-md-7">
+          <h6>Chat</h6>
+          <p class="mb-1"><strong>Trabajo:</strong> <span id="chat-prof-trabajo">–</span></p>
+          <p class="mb-2"><strong>Cliente:</strong> <span id="chat-prof-cliente">–</span></p>
+          <div id="chat-mensajes-prof" class="mb-2"><div class="text-muted">Seleccioná un trabajo para ver el chat.</div></div>
+          <div class="input-group">
+            <textarea id="chat-input-prof" class="form-control" rows="1"
+                      placeholder="Escribí un mensaje..."
+                      onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();enviarMensajeChatProfesional();}"></textarea>
+            <button class="btn btn-primary" onclick="enviarMensajeChatProfesional()">Enviar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FINALIZADOS: Calificar Cliente -->
+  <div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <span>Mis trabajos FINALIZADOS (calificar cliente)</span>
+      <button class="btn btn-sm btn-secondary" onclick="cargarFinalizadosProf()">Actualizar</button>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-sm align-middle">
+          <thead><tr><th>ID</th><th>Título</th><th>Cliente</th><th>Acciones</th></tr></thead>
+          <tbody id="tabla-trabajos-finalizados-prof"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let token=null, userId=null, chatTrabajoIdProf=null;
+
+  function decodeJwt(t){const b=t.split('.')[1];return JSON.parse(atob(b));}
+  function logout(){localStorage.removeItem('jwt');location.href='/index.html';}
+  function irCliente(){location.href='/cliente.html';}
+  function safe(s){return s==null?'':String(s);}
+  function badgeEstado(e){if(e==='PUBLICADO')return'<span class="badge bg-primary badge-estado">PUBLICADO</span>';if(e==='EN_PROCESO')return'<span class="badge bg-info text-dark badge-estado">EN_PROCESO</span>';if(e==='FINALIZADO')return'<span class="badge bg-success badge-estado">FINALIZADO</span>';if(e==='BAJA')return'<span class="badge bg-secondary badge-estado">BAJA</span>';return e||'-';}
+
+  async function cargarTrabajosPublicados(){
+    const tb=document.getElementById('tabla-trabajos-publicados'); tb.innerHTML='<tr><td colspan="5">Cargando...</td></tr>';
+    const r=await fetch('/api/trabajos',{headers:{Authorization:'Bearer '+token}}); if(!r.ok){tb.innerHTML='<tr><td colspan="5">Error.</td></tr>';return;}
+    const all=await r.json(); const pubs=all.filter(t=>t.estado==='PUBLICADO');
+    if(!pubs.length){tb.innerHTML='<tr><td colspan="5">No hay trabajos publicados.</td></tr>';return;}
+    tb.innerHTML=''; pubs.forEach(t=>{
+      tb.insertAdjacentHTML('beforeend',`
+        <tr>
+          <td>${t.id}</td><td>${safe(t.titulo)}</td><td>${t.clienteNombre||'-'}</td><td>${badgeEstado(t.estado)}</td>
+          <td><button class="btn btn-sm btn-outline-primary" onclick="postularme(${t.id},'${safe(t.titulo).replace(/'/g,"\\'")}')">Postularme</button></td>
+        </tr>`);
+    });
+  }
+
+  async function postularme(trabajoId,titulo){
+    const montoStr=prompt(`Ingresá tu monto para "${titulo}":`); if(montoStr==null)return;
+    const monto=parseFloat(montoStr); if(isNaN(monto)||monto<=0){alert('Monto inválido.');return;}
+    const mensaje=prompt('Mensaje para el cliente (opcional):')||'';
+    const body={profesionalId:userId,monto, mensaje};
+    const r=await fetch(`/api/trabajos/${trabajoId}/postulaciones`,{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!r.ok){alert('No se pudo enviar la cotización.');return;}
+    alert('Cotización enviada.');
+  }
+
+  async function cargarTrabajosAsignados(){
+    const tb=document.getElementById('tabla-trabajos-asignados'); tb.innerHTML='<tr><td colspan="4">Cargando...</td></tr>';
+    const r=await fetch('/api/trabajos',{headers:{Authorization:'Bearer '+token}}); if(!r.ok){tb.innerHTML='<tr><td colspan="4">Error.</td></tr>';return;}
+    const all=await r.json();
+    const lista=all.filter(t=>t.estado==='EN_PROCESO' && t.profesionalId===userId);
+    if(!lista.length){tb.innerHTML='<tr><td colspan="4">Sin trabajos en proceso.</td></tr>'; resetChatProf(); return;}
+    tb.innerHTML=''; lista.forEach(t=>{
+      tb.insertAdjacentHTML('beforeend',`
+        <tr>
+          <td>${t.id}</td><td>${safe(t.titulo)}</td><td>${t.clienteNombre||'-'}</td>
+          <td><button class="btn btn-sm btn-outline-primary"
+              onclick="abrirChatProfesional(${t.id},'${safe(t.titulo).replace(/'/g,"\\'")}','${safe(t.clienteNombre).replace(/'/g,"\\'")}')">Abrir chat</button></td>
+        </tr>`);
+    });
+  }
+
+  function resetChatProf(){
+    chatTrabajoIdProf=null;
+    document.getElementById('chat-prof-trabajo').textContent='–';
+    document.getElementById('chat-prof-cliente').textContent='–';
+    document.getElementById('chat-mensajes-prof').innerHTML='<div class="text-muted">Seleccioná un trabajo para ver el chat.</div>';
+    document.getElementById('chat-input-prof').value='';
+  }
+  function abrirChatProfesional(id,titulo,cliente){
+    chatTrabajoIdProf=id;
+    document.getElementById('chat-prof-trabajo').textContent=`${id} — ${titulo}`;
+    document.getElementById('chat-prof-cliente').textContent=cliente||'-';
+    cargarMensajesChatProfesional();
+  }
+  async function cargarMensajesChatProfesional(){
+    if(!chatTrabajoIdProf) return;
+    const cont=document.getElementById('chat-mensajes-prof'); cont.innerHTML='<div class="text-muted">Cargando…</div>';
+    const r=await fetch(`/api/chat/trabajo/${chatTrabajoIdProf}`,{headers:{Authorization:'Bearer '+token}});
+    if(!r.ok){cont.innerHTML='<div class="text-danger">Error al cargar el chat.</div>';return;}
+    const msgs=await r.json(); if(!msgs.length){cont.innerHTML='<div class="text-muted">Sin mensajes.</div>';return;}
+    cont.innerHTML=''; msgs.forEach(m=>{
+      const soyYo=(m.remitenteId===userId);
+      cont.insertAdjacentHTML('beforeend',`
+        <div class="mb-2 d-flex ${soyYo?'justify-content-end':'justify-content-start'}">
+          <div class="p-2 rounded-3 ${soyYo?'bg-primary text-white':'bg-light'}" style="max-width:75%">
+            <div class="small fw-bold">${m.remitenteNombre||m.remitenteRol||''}</div>
+            <div>${safe(m.contenido)}</div>
+            <div class="small text-muted text-end">${m.enviadoEn?m.enviadoEn.replace('T',' ').slice(0,16):''}</div>
+          </div>
+        </div>`);
+    });
+    cont.scrollTop=cont.scrollHeight;
+  }
+  async function enviarMensajeChatProfesional(){
+    if(!chatTrabajoIdProf){alert('Seleccioná un trabajo.');return;}
+    const input=document.getElementById('chat-input-prof'); const texto=input.value.trim(); if(!texto) return;
+    const body={trabajoId:chatTrabajoIdProf, remitenteId:userId, remitenteRol:'PROFESIONAL', contenido:texto};
+    const r=await fetch('/api/chat',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!r.ok){alert('No se pudo enviar.');return;}
+    input.value=''; cargarMensajesChatProfesional();
+  }
+
+  /* FINALIZADOS: calificar cliente */
+  async function cargarFinalizadosProf(){
+    const tb=document.getElementById('tabla-trabajos-finalizados-prof'); tb.innerHTML='<tr><td colspan="4">Cargando...</td></tr>';
+    const r=await fetch('/api/trabajos',{headers:{Authorization:'Bearer '+token}}); if(!r.ok){tb.innerHTML='<tr><td colspan="4">Error.</td></tr>';return;}
+    const all=await r.json();
+    const lista=all.filter(t=>t.estado==='FINALIZADO' && t.profesionalId===userId);
+    if(!lista.length){tb.innerHTML='<tr><td colspan="4">No tenés trabajos finalizados aún.</td></tr>';return;}
+    tb.innerHTML=''; lista.forEach(t=>{
+      tb.insertAdjacentHTML('beforeend',`
+        <tr>
+          <td>${t.id}</td><td>${safe(t.titulo)}</td><td>${t.clienteNombre||'-'}</td>
+          <td><button class="btn btn-sm btn-success"
+              onclick="calificarCliente(${t.id},${t.clienteId},'${safe(t.titulo).replace(/'/g,"\\'")}')">Calificar cliente</button></td>
+        </tr>`);
+    });
+  }
+  async function calificarCliente(trabajoId, clienteId, titulo){
+    let puntajeStr=prompt(`Del 1 al 5, ¿cómo calificarías al CLIENTE por "${titulo}"?`); if(puntajeStr==null) return;
+    const puntaje=parseInt(puntajeStr,10); if(isNaN(puntaje)||puntaje<1||puntaje>5){alert('Puntaje inválido.');return;}
+    let comentario=prompt('Comentario (opcional):')||'';
+    const body={autorId:userId, destinatarioId:clienteId, trabajoId, puntaje, comentario};
+    const r=await fetch('/api/calificaciones',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!r.ok){const txt=await r.text(); alert('No se pudo registrar la calificación: '+txt);return;}
+    alert('¡Gracias! Se registró tu calificación al cliente.');
+  }
+
+  document.addEventListener('DOMContentLoaded',()=>{
+    token=localStorage.getItem('jwt'); if(!token){location.href='/index.html';return;}
+    const p=decodeJwt(token); userId=p.userId; document.getElementById('sesion-email').textContent=p.sub; document.getElementById('sesion-rol').textContent=p.rol; document.getElementById('sesion-id').textContent=userId;
+    if(p.rol!=='PROFESIONAL'){alert('Solo PROFESIONAL.'); logout(); return;}
+    cargarTrabajosPublicados(); cargarTrabajosAsignados(); cargarFinalizadosProf();
+  });
+</script>
+</body>
+</html>

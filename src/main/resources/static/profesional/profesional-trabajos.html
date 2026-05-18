@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <!-- =========================
+       CONFIGURACIÓN BÁSICA
+       ========================= -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Construir - Oportunidades para profesionales</title>
+
+  <!-- =========================
+       BOOTSTRAP
+       ========================= -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="/css/construir.css" rel="stylesheet" />
+
+  <style>
+    /* =========================
+       ESTILOS GENERALES
+       ========================= */
+    body {
+      background: #f7f7f9;
+    }
+
+    .resumen-card {
+      border: none;
+      border-radius: 1rem;
+      box-shadow: 0 6px 18px rgba(0,0,0,.06);
+    }
+
+    .resumen-numero {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #0d6efd;
+    }
+
+    .table-sm td,
+    .table-sm th {
+      padding: .5rem .55rem;
+    }
+
+    .filtro-box {
+      background: #fff;
+      border: 1px solid #dee2e6;
+      border-radius: .9rem;
+      padding: 1rem;
+    }
+
+    .detalle-label {
+      font-size: .85rem;
+      color: #6c757d;
+      margin-bottom: .2rem;
+    }
+
+    .detalle-box {
+      background: #f8f9fa;
+      border: 1px solid #e9ecef;
+      border-radius: .75rem;
+      padding: .75rem;
+      min-height: 70px;
+    }
+
+    .cotizacion-card {
+      border: none;
+      border-radius: 1rem;
+      box-shadow: 0 6px 18px rgba(0,0,0,.08);
+    }
+  </style>
+</head>
+<body>
+
+<!-- =========================
+     NAVBAR
+     ========================= -->
+<nav class="navbar navbar-dark app-navbar">
+  <div class="container-fluid">
+    <span class="navbar-brand">Construir - Oportunidades</span>
+
+    <div class="d-flex gap-2">
+      <a class="btn btn-outline-light btn-sm" href="/profesional/profesional.html">Panel</a>
+      <a class="btn btn-outline-light btn-sm" href="/profesional/profesional-chat.html">Chat</a>
+      <a class="btn btn-outline-light btn-sm" href="/profesional/profesional-calificaciones.html">Finalizados</a>
+      <button class="btn btn-danger btn-sm" onclick="logout()">Cerrar sesión</button>
+    </div>
+  </div>
+</nav>
+
+<div class="page-container">
+
+  <!-- =========================
+       ENCABEZADO DE PÁGINA
+       ========================= -->
+  <div class="page-header d-flex justify-content-between align-items-start gap-3 flex-wrap">
+    <div>
+      <h1 class="page-title">Oportunidades disponibles</h1>
+      <p class="page-subtitle">
+        Consultá trabajos publicados por clientes, revisá sus detalles y enviá tu cotización.
+      </p>
+    </div>
+
+    <button class="btn btn-outline-secondary btn-sm" onclick="cargarTodo()">
+      Actualizar oportunidades
+    </button>
+  </div>
+
+  <!-- =========================
+       RESUMEN DE OPORTUNIDADES
+       ========================= -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-6">
+      <div class="card summary-card">
+        <div class="card-body">
+          <div class="text-muted mb-2">Trabajos publicados</div>
+          <div class="resumen-numero" id="res-publicados">0</div>
+          <div class="small text-muted">
+            Oportunidades actualmente abiertas para cotizar.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card summary-card">
+        <div class="card-body">
+          <div class="text-muted mb-2">Postulaciones ya realizadas</div>
+          <div class="resumen-numero" id="res-postulados">0</div>
+          <div class="small text-muted">
+            Trabajos donde este profesional ya envió cotización.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================
+       FILTRO
+       ========================= -->
+  <div class="card app-card">
+    <div class="card-header">Buscar oportunidades</div>
+    <div class="card-body">
+      <div class="row g-3 align-items-end">
+        <div class="col-md-8">
+          <label for="filtroTexto" class="form-label">Buscar por título, cliente, ubicación o especialidad</label>
+          <input id="filtroTexto"
+                 type="text"
+                 class="form-control"
+                 placeholder="Ej: tablero, plomería, Río Grande, electricista..."
+                 oninput="renderPublicados()" />
+        </div>
+
+        <div class="col-md-4">
+          <button class="btn btn-outline-secondary w-100" onclick="limpiarFiltro()">Limpiar filtro</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================
+       FORMULARIO DE COTIZACIÓN
+       ========================= -->
+  <div id="cotizacion-card" class="card app-card d-none">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <span>Enviar cotización</span>
+      <button class="btn btn-sm btn-outline-secondary" onclick="cancelarCotizacion()">Cancelar</button>
+    </div>
+
+    <div class="card-body">
+      <div class="alert alert-info mb-3">
+        <strong>Trabajo seleccionado:</strong>
+        <span id="cotizacion-trabajo-info">-</span>
+      </div>
+
+      <div class="row g-3">
+        <!-- Monto -->
+        <div class="col-md-4">
+          <label for="cotizacionMonto" class="form-label">Monto</label>
+          <input id="cotizacionMonto"
+                 type="number"
+                 min="1"
+                 step="1"
+                 inputmode="numeric"
+                 class="form-control"
+                 placeholder="Ej: 150000" />
+          <div class="form-text">Solo números enteros positivos.</div>
+        </div>
+
+        <!-- Moneda -->
+        <div class="col-md-4">
+          <label for="cotizacionMoneda" class="form-label">Moneda</label>
+          <select id="cotizacionMoneda" class="form-select">
+            <option value="ARS">Pesos argentinos (ARS)</option>
+            <option value="USD">Dólares (USD)</option>
+          </select>
+        </div>
+
+        <!-- Botón enviar -->
+        <div class="col-md-4 d-flex align-items-end">
+          <button class="btn btn-primary w-100" onclick="enviarCotizacion()">
+            Enviar cotización
+          </button>
+        </div>
+
+        <!-- Mensaje -->
+        <div class="col-12">
+          <label for="cotizacionMensaje" class="form-label">Mensaje para el cliente</label>
+          <textarea id="cotizacionMensaje"
+                    class="form-control"
+                    rows="4"
+                    maxlength="500"
+                    placeholder="Ej: Incluye mano de obra. Materiales aparte. Tiempo estimado: 2 días."
+                    oninput="actualizarContadorMensaje()"></textarea>
+          <div class="form-text">
+            <span id="cotizacionMensajeContador">0</span>/500 caracteres.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================
+       TABLA DE OPORTUNIDADES
+       ========================= -->
+  <div class="card app-card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <span>Trabajos publicados por clientes</span>
+      <button class="btn btn-sm btn-secondary" onclick="cargarPublicados()">Recargar</button>
+    </div>
+
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-sm align-middle table-hover">
+          <thead class="table-light">
+          <tr>
+            <th style="width:60px">ID</th>
+            <th>Título</th>
+            <th>Cliente</th>
+            <th>Ubicación</th>
+            <th>Especialidad</th>
+            <th style="width:120px">Estado</th>
+            <th style="width:240px">Acciones</th>
+          </tr>
+          </thead>
+          <tbody id="tabla-publicados">
+          <tr><td colspan="7">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- =========================
+     MODAL DE REPUTACIÓN
+     ========================= -->
+<div class="modal fade" id="repModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          Reputación de <span id="repModalNombre">-</span>
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="row g-3 align-items-center mb-3">
+          <div class="col-md-4">
+            <div class="text-muted">Promedio</div>
+            <div class="display-6"><span id="repModalProm">0.0</span> / 5</div>
+            <div class="text-warning" id="repModalStars" style="font-size:1.1rem;">★★★★★</div>
+            <div class="small text-muted"><span id="repModalCant">0</span> calificaciones</div>
+          </div>
+
+          <div class="col-md-8">
+            <div class="table-responsive">
+              <table class="table table-sm table-hover align-middle">
+                <thead class="table-light">
+                <tr>
+                  <th style="width:60px">Puntaje</th>
+                  <th>Autor</th>
+                  <th>Comentario</th>
+                  <th style="width:120px">Fecha</th>
+                </tr>
+                </thead>
+                <tbody id="repModalTabla">
+                <tr><td colspan="4">Cargando…</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="small text-muted">Se muestran las últimas calificaciones.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =========================
+     MODAL DE DETALLE DEL TRABAJO
+     ========================= -->
+<div class="modal fade" id="detalleTrabajoModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          Detalle del trabajo <span id="detalle-id">-</span>
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="row g-3">
+          <!-- Título -->
+          <div class="col-12">
+            <div class="detail-label">Título</div>
+            <div class="detail-box" id="detalle-titulo">-</div>
+          </div>
+
+          <!-- Cliente -->
+          <div class="col-md-6">
+            <div class="detail-label">Cliente</div>
+            <div class="detail-box" id="detalle-cliente">-</div>
+          </div>
+
+          <!-- Estado -->
+          <div class="col-md-6">
+            <div class="detail-label">Estado</div>
+            <div class="detail-box" id="detalle-estado">-</div>
+          </div>
+
+          <!-- Ubicación -->
+          <div class="col-md-6">
+            <div class="detail-label">Ubicación</div>
+            <div class="detail-box" id="detalle-ubicacion">-</div>
+          </div>
+
+          <!-- Medidas -->
+          <div class="col-md-6">
+            <div class="detail-label">Medidas</div>
+            <div class="detail-box" id="detalle-medidas">-</div>
+          </div>
+
+          <!-- Especialidad requerida -->
+          <div class="col-12">
+            <div class="detail-label">Especialidad requerida</div>
+            <div class="detail-box" id="detalle-especialidad">-</div>
+          </div>
+
+          <!-- Descripción -->
+          <div class="col-12">
+            <div class="detail-label">Descripción</div>
+            <div class="detail-box" id="detalle-descripcion">-</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button id="btn-modal-postular"
+                type="button"
+                class="btn btn-primary">
+          Postularme
+        </button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // =========================================================
+  // VARIABLES GLOBALES
+  // =========================================================
+  let token = null;
+  let userId = null;
+  let trabajosPublicados = [];
+
+  // Trabajo seleccionado para cotizar desde el formulario
+  let trabajoCotizarId = null;
+  let trabajoCotizarTitulo = null;
+
+  const $ = (id) => document.getElementById(id);
+  const safe = (s) => (s == null ? '' : String(s));
+
+  /**
+   * Escapa texto para usarlo dentro de onclick.
+   */
+  function jsString(s) {
+    return safe(s)
+      .replace(/\\/g, '\\\\')
+      .replace(/'/g, "\\'")
+      .replace(/\n/g, ' ');
+  }
+
+  /**
+   * Decodifica el JWT.
+   */
+  function decodeJwt(t) {
+    return JSON.parse(atob(t.split('.')[1]));
+  }
+
+  /**
+   * Cierra sesión y vuelve al inicio público.
+   */
+  function logout() {
+    localStorage.removeItem('jwt');
+    location.href = '/public/index.html';
+  }
+
+  /**
+   * Limpia el filtro de búsqueda.
+   */
+  function limpiarFiltro() {
+    $('filtroTexto').value = '';
+    renderPublicados();
+  }
+
+  /**
+   * Muestra la especialidad de forma legible.
+   */
+  function mostrarEspecialidad(valor) {
+    const v = safe(valor);
+
+    if (!v) return 'No informada';
+
+    const mapa = {
+      ELECTRICISTA: 'Electricista',
+      GASISTA: 'Gasista',
+      PLOMERO: 'Plomero',
+      'ALBAÑIL': 'Albañil',
+      ALBANIL: 'Albañil',
+      PINTOR: 'Pintor',
+      MAESTRO_MAYOR_OBRA: 'Maestro mayor de obra',
+      CARPINTERO: 'Carpintero',
+      OTRO: 'Otro'
+    };
+
+    return mapa[v] || v;
+  }
+
+  // =========================================================
+  // MODAL DE REPUTACIÓN
+  // =========================================================
+  function estrellas(p) {
+    const v = Math.max(0, Math.min(5, Number(p) || 0));
+    return '★★★★★'.slice(0, Math.round(v)) + '☆☆☆☆☆'.slice(0, 5 - Math.round(v));
+  }
+
+  async function verRep(personaId, nombreVisible) {
+    if (!personaId) return;
+
+    $('repModalNombre').textContent = nombreVisible || personaId;
+
+    let prom = 0.0;
+    let cant = 0;
+    let rows = '<tr><td colspan="4">Sin calificaciones.</td></tr>';
+
+    try {
+      const rp = await fetch(`/api/calificaciones/persona/${personaId}/promedio`, {
+        headers: { Authorization: 'Bearer ' + token }
+      });
+      if (rp.ok) prom = await rp.json();
+    } catch (_) {}
+
+    $('repModalProm').textContent = (prom || 0).toFixed(1);
+    $('repModalStars').textContent = estrellas(prom);
+
+    try {
+      const rl = await fetch(`/api/calificaciones/persona/${personaId}`, {
+        headers: { Authorization: 'Bearer ' + token }
+      });
+
+      if (rl.ok) {
+        const lista = await rl.json();
+        cant = Array.isArray(lista) ? lista.length : 0;
+
+        if (cant) {
+          rows = lista
+            .sort((a, b) => (b.fecha || '').localeCompare(a.fecha || ''))
+            .slice(0, 15)
+            .map(c => `
+              <tr>
+                <td>${c.puntaje ?? '-'}</td>
+                <td>${c.autorNombre || c.autorId || '-'}</td>
+                <td>${safe(c.comentario)}</td>
+                <td>${(c.fecha || '').slice(0, 10)}</td>
+              </tr>
+            `).join('');
+        }
+      }
+    } catch (_) {}
+
+    $('repModalCant').textContent = cant;
+    $('repModalTabla').innerHTML = rows;
+
+    const modal = new bootstrap.Modal(document.getElementById('repModal'));
+    modal.show();
+  }
+
+  function linkReputacion(id, nombre) {
+    const clean = jsString(nombre || id || '-');
+    return `<button type="button" class="btn btn-link p-0" onclick="verRep(${Number(id)}, '${clean}')">${nombre || id || '-'}</button>`;
+  }
+
+  // =========================================================
+  // DETALLE DEL TRABAJO
+  // =========================================================
+  function verDetalleTrabajo(trabajoId) {
+    const trabajo = trabajosPublicados.find(t => Number(t.id) === Number(trabajoId));
+    if (!trabajo) return;
+
+    $('detalle-id').textContent = '#' + (trabajo.id ?? '-');
+    $('detalle-titulo').textContent = safe(trabajo.titulo) || '-';
+    $('detalle-cliente').textContent = safe(trabajo.clienteNombre) || safe(trabajo.clienteId) || '-';
+    $('detalle-estado').textContent = safe(trabajo.estado) || '-';
+    $('detalle-ubicacion').textContent = safe(trabajo.ubicacion) || 'No informada';
+    $('detalle-medidas').textContent = safe(trabajo.medidas) || 'No informadas';
+
+    $('detalle-especialidad').textContent =
+      mostrarEspecialidad(trabajo.especialidadRequerida || trabajo.especialidad);
+
+    $('detalle-descripcion').textContent = safe(trabajo.descripcion) || 'Sin descripción.';
+
+    const btnPostular = $('btn-modal-postular');
+
+    if (trabajo.yaPostulado) {
+      btnPostular.textContent = 'Ya postulaste';
+      btnPostular.disabled = true;
+      btnPostular.onclick = null;
+    } else {
+      btnPostular.textContent = 'Postularme';
+      btnPostular.disabled = false;
+      btnPostular.onclick = () => {
+        cerrarModalDetalle();
+        abrirFormularioCotizacion(trabajo.id, trabajo.titulo);
+      };
+    }
+
+    const modal = new bootstrap.Modal(document.getElementById('detalleTrabajoModal'));
+    modal.show();
+  }
+
+  /**
+   * Cierra el modal de detalle si está abierto.
+   */
+  function cerrarModalDetalle() {
+    const modalElement = document.getElementById('detalleTrabajoModal');
+    const modal = bootstrap.Modal.getInstance(modalElement);
+
+    if (modal) {
+      modal.hide();
+    }
+  }
+
+  // =========================================================
+  // FORMULARIO DE COTIZACIÓN
+  // =========================================================
+
+  /**
+   * Abre el formulario de cotización para un trabajo seleccionado.
+   */
+  function abrirFormularioCotizacion(trabajoId, titulo) {
+    trabajoCotizarId = trabajoId;
+    trabajoCotizarTitulo = titulo;
+
+    $('cotizacion-trabajo-info').textContent = `${trabajoId} — ${titulo}`;
+    $('cotizacionMonto').value = '';
+    $('cotizacionMoneda').value = 'ARS';
+    $('cotizacionMensaje').value = '';
+    actualizarContadorMensaje();
+
+    $('cotizacion-card').classList.remove('d-none');
+    $('cotizacionMonto').focus();
+
+    // Baja visualmente hasta el formulario
+    $('cotizacion-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  /**
+   * Cancela la cotización actual y oculta el formulario.
+   */
+  function cancelarCotizacion() {
+    trabajoCotizarId = null;
+    trabajoCotizarTitulo = null;
+
+    $('cotizacion-trabajo-info').textContent = '-';
+    $('cotizacionMonto').value = '';
+    $('cotizacionMoneda').value = 'ARS';
+    $('cotizacionMensaje').value = '';
+    actualizarContadorMensaje();
+
+    $('cotizacion-card').classList.add('d-none');
+  }
+
+  /**
+   * Actualiza el contador de caracteres del mensaje.
+   */
+  function actualizarContadorMensaje() {
+    $('cotizacionMensajeContador').textContent = $('cotizacionMensaje').value.length;
+  }
+
+  /**
+   * Valida y envía una cotización al backend.
+   */
+  async function enviarCotizacion() {
+    if (!trabajoCotizarId) {
+      alert('Primero seleccioná un trabajo para cotizar.');
+      return;
+    }
+
+    const montoTexto = $('cotizacionMonto').value.trim();
+    const moneda = $('cotizacionMoneda').value;
+    const mensaje = $('cotizacionMensaje').value.trim();
+
+    // Validación: solo números enteros positivos
+    if (!/^[0-9]+$/.test(montoTexto)) {
+      alert('El monto debe ser un número entero positivo.');
+      return;
+    }
+
+    const monto = Number(montoTexto);
+
+    if (monto <= 0) {
+      alert('El monto debe ser mayor a cero.');
+      return;
+    }
+
+    if (moneda !== 'ARS' && moneda !== 'USD') {
+      alert('La moneda debe ser ARS o USD.');
+      return;
+    }
+
+    if (mensaje.length > 500) {
+      alert('El mensaje no puede superar los 500 caracteres.');
+      return;
+    }
+
+    const body = {
+      profesionalId: userId,
+      monto,
+      moneda,
+      mensaje
+    };
+
+    const r = await fetch(`/api/trabajos/${trabajoCotizarId}/postulaciones`, {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer ' + token,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+
+    if (!r.ok) {
+      const t = await r.text();
+      alert('No se pudo enviar la cotización: ' + t);
+      return;
+    }
+
+    alert('Cotización enviada con éxito.');
+
+    cancelarCotizacion();
+    await cargarPublicados();
+  }
+
+  // =========================================================
+  // CARGA DE OPORTUNIDADES
+  // =========================================================
+  async function cargarPublicados() {
+    const tbody = $('tabla-publicados');
+    tbody.innerHTML = '<tr><td colspan="7">Cargando...</td></tr>';
+
+    // 1) Traer todos los trabajos
+    const rTrabajos = await fetch('/api/trabajos', {
+      headers: { Authorization: 'Bearer ' + token }
+    });
+
+    if (!rTrabajos.ok) {
+      tbody.innerHTML = '<tr><td colspan="7">Error al cargar trabajos.</td></tr>';
+      return;
+    }
+
+    const todos = await rTrabajos.json();
+
+    // 2) Filtrar solo PUBLICADO
+    const publicados = (Array.isArray(todos) ? todos : [])
+      .filter(t => (t.estado || '').toUpperCase() === 'PUBLICADO')
+      .sort((a, b) => Number(b.id) - Number(a.id));
+
+    // 3) Verificar si el profesional ya postuló a cada trabajo
+    const enriquecidos = await Promise.all(publicados.map(async (t) => {
+      let yaPostulado = false;
+
+      try {
+        const rPost = await fetch(`/api/trabajos/${t.id}/postulaciones`, {
+          headers: { Authorization: 'Bearer ' + token }
+        });
+
+        if (rPost.ok) {
+          const postulaciones = await rPost.json();
+          yaPostulado = (Array.isArray(postulaciones) ? postulaciones : []).some(
+            p => Number(p.profesionalId) === Number(userId)
+          );
+        }
+      } catch (_) {
+        yaPostulado = false;
+      }
+
+      return {
+        ...t,
+        yaPostulado
+      };
+    }));
+
+    trabajosPublicados = enriquecidos;
+
+    // 4) Cargar resumen
+    $('res-publicados').textContent = enriquecidos.length;
+    $('res-postulados').textContent = enriquecidos.filter(t => t.yaPostulado).length;
+
+    // 5) Renderizar tabla
+    renderPublicados();
+  }
+
+  /**
+   * Renderiza la tabla aplicando filtro por texto.
+   */
+  function renderPublicados() {
+    const tbody = $('tabla-publicados');
+    const filtro = $('filtroTexto').value.trim().toLowerCase();
+
+    let lista = trabajosPublicados;
+
+    if (filtro) {
+      lista = lista.filter(t => {
+        const titulo = safe(t.titulo).toLowerCase();
+        const cliente = safe(t.clienteNombre).toLowerCase();
+        const ubicacion = safe(t.ubicacion).toLowerCase();
+        const especialidad = mostrarEspecialidad(t.especialidadRequerida || t.especialidad).toLowerCase();
+
+        return titulo.includes(filtro)
+          || cliente.includes(filtro)
+          || ubicacion.includes(filtro)
+          || especialidad.includes(filtro);
+      });
+    }
+
+    if (!lista.length) {
+      tbody.innerHTML = '<tr><td colspan="7">No hay trabajos que coincidan con el filtro.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = lista.map(t => `
+      <tr>
+        <td>${t.id}</td>
+        <td>${safe(t.titulo)}</td>
+        <td>${linkReputacion(t.clienteId, safe(t.clienteNombre) || t.clienteId)}</td>
+        <td>${safe(t.ubicacion) || '-'}</td>
+        <td>${mostrarEspecialidad(t.especialidadRequerida || t.especialidad)}</td>
+        <td><span class="badge bg-primary">PUBLICADO</span></td>
+        <td class="d-flex gap-2 flex-wrap">
+          <button class="btn btn-sm btn-outline-secondary"
+                  onclick="verDetalleTrabajo(${t.id})">
+            Ver detalle
+          </button>
+
+          ${
+            t.yaPostulado
+              ? `<button class="btn btn-sm btn-secondary" disabled>Ya postulaste</button>`
+              : `<button class="btn btn-sm btn-outline-primary" onclick="abrirFormularioCotizacion(${t.id}, '${jsString(t.titulo)}')">Postularme</button>`
+          }
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  // =========================================================
+  // CARGA GENERAL
+  // =========================================================
+  async function cargarTodo() {
+    await cargarPublicados();
+  }
+
+  // =========================================================
+  // INICIO DE LA PÁGINA
+  // =========================================================
+  document.addEventListener('DOMContentLoaded', async () => {
+    token = localStorage.getItem('jwt');
+
+    // Si no hay token, volver al login público
+    if (!token) {
+      location.href = '/public/login.html';
+      return;
+    }
+
+    const payload = decodeJwt(token);
+    userId = payload.userId;
+
+    // Panel técnico de sesión eliminado de la vista final.
+    // Se conserva el userId internamente para las consultas al backend.
+
+    // Validación de rol
+    if (payload.rol !== 'PROFESIONAL') {
+      alert('Esta vista es solo para profesionales.');
+      logout();
+      return;
+    }
+
+    await cargarTodo();
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

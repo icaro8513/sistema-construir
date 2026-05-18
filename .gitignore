@@ -1,0 +1,25 @@
+.gradle/
+build/
+out/
+target/
+
+.idea/
+*.iml
+
+*.log
+.env
+
+application-local.properties
+
+# Gradle wrapper
+!gradle/wrapper/gradle-wrapper.jar
+
+# STS / Eclipse
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/

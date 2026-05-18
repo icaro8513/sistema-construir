@@ -1,0 +1,227 @@
+/* =========================================================
+   CONSTRUIR / CONSTRUX-COM
+   Hoja de estilos general del sistema
+   ========================================================= */
+
+/* =========================
+   ESTILO GENERAL
+   ========================= */
+
+body {
+    background: #f4f6f8;
+    color: #212529;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+/* Contenedor principal de cada página */
+.page-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1.5rem;
+}
+
+/* =========================
+   NAVBAR
+   ========================= */
+
+.app-navbar {
+    background: #17202a;
+    padding: .85rem 1rem;
+}
+
+.app-navbar .navbar-brand {
+    font-weight: 700;
+    letter-spacing: .02em;
+}
+
+.app-navbar .btn {
+    border-radius: .55rem;
+}
+
+/* =========================
+   ENCABEZADOS DE PÁGINA
+   ========================= */
+
+.page-header {
+    margin-bottom: 1.5rem;
+}
+
+.page-title {
+    font-size: 1.65rem;
+    font-weight: 700;
+    margin-bottom: .25rem;
+}
+
+.page-subtitle {
+    color: #6c757d;
+    margin-bottom: 0;
+}
+
+/* =========================
+   TARJETAS
+   ========================= */
+
+.app-card {
+    border: none;
+    border-radius: 1rem;
+    box-shadow: 0 8px 22px rgba(0, 0, 0, .06);
+    background: #ffffff;
+    margin-bottom: 1.5rem;
+}
+
+.app-card .card-header {
+    background: #ffffff;
+    border-bottom: 1px solid #e9ecef;
+    font-weight: 600;
+    padding: 1rem 1.25rem;
+}
+
+.app-card .card-body {
+    padding: 1.25rem;
+}
+
+/* Tarjetas de resumen */
+.summary-card {
+    border: none;
+    border-radius: 1rem;
+    background: #ffffff;
+    box-shadow: 0 8px 22px rgba(0, 0, 0, .06);
+}
+
+.summary-label {
+    color: #6c757d;
+    font-size: .9rem;
+    margin-bottom: .25rem;
+}
+
+.summary-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #0d6efd;
+}
+
+/* =========================
+   FORMULARIOS
+   ========================= */
+
+.form-label {
+    font-weight: 600;
+    color: #343a40;
+}
+
+.form-control,
+.form-select {
+    border-radius: .65rem;
+    padding: .65rem .8rem;
+}
+
+.form-control:focus,
+.form-select:focus {
+    box-shadow: 0 0 0 .18rem rgba(13, 110, 253, .18);
+}
+
+/* =========================
+   BOTONES
+   ========================= */
+
+.btn {
+    border-radius: .6rem;
+    font-weight: 500;
+}
+
+.btn-sm {
+    border-radius: .5rem;
+}
+
+/* =========================
+   TABLAS
+   ========================= */
+
+.table {
+    margin-bottom: 0;
+}
+
+.table thead th {
+    background: #f8f9fa;
+    font-weight: 700;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.table td,
+.table th {
+    vertical-align: middle;
+}
+
+/* =========================
+   BADGES / ESTADOS
+   ========================= */
+
+.badge {
+    border-radius: .5rem;
+    padding: .4rem .55rem;
+}
+
+/* =========================
+   DETALLES
+   ========================= */
+
+.detail-label {
+    font-size: .85rem;
+    color: #6c757d;
+    margin-bottom: .25rem;
+}
+
+.detail-box {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: .75rem;
+    padding: .8rem;
+    min-height: 64px;
+}
+
+/* =========================
+   CHAT
+   ========================= */
+
+.chat-box {
+    border: 1px solid #dee2e6;
+    border-radius: .85rem;
+    background: #ffffff;
+    padding: .75rem;
+    height: 300px;
+    overflow-y: auto;
+}
+
+/* =========================
+   UTILIDADES
+   ========================= */
+
+.soft-muted {
+    color: #6c757d;
+}
+
+.section-spacer {
+    margin-bottom: 1.5rem;
+}
+
+/* =========================
+   RESPONSIVE
+   ========================= */
+
+@media (max-width: 768px) {
+    .page-container {
+        padding: 1rem;
+    }
+
+    .page-title {
+        font-size: 1.35rem;
+    }
+
+    .summary-number {
+        font-size: 1.6rem;
+    }
+
+    .table-responsive {
+        font-size: .9rem;
+    }
+}

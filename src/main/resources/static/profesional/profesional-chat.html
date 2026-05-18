@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <!-- =========================
+         CONFIGURACIÓN BÁSICA
+         ========================= -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Construir - Chat profesional</title>
+
+    <!-- =========================
+         BOOTSTRAP
+         ========================= -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="/css/construir.css" rel="stylesheet" />
+</head>
+<body>
+
+<!-- =========================
+     NAVBAR DEL PROFESIONAL
+     ========================= -->
+<nav class="navbar navbar-dark app-navbar">
+    <div class="container-fluid">
+        <span class="navbar-brand">Construir - Chat profesional</span>
+
+        <div class="d-flex gap-2">
+            <a class="btn btn-outline-light btn-sm" href="/profesional/profesional.html">Panel</a>
+            <a class="btn btn-outline-light btn-sm" href="/profesional/profesional-trabajos.html">Oportunidades</a>
+            <a class="btn btn-outline-light btn-sm" href="/profesional/profesional-calificaciones.html">Finalizados</a>
+            <button class="btn btn-danger btn-sm" onclick="logout()">Cerrar sesión</button>
+        </div>
+    </div>
+</nav>
+
+<div class="page-container">
+    <!-- =========================
+         ENCABEZADO DE PÁGINA
+         ========================= -->
+    <div class="page-header d-flex justify-content-between align-items-start gap-3 flex-wrap">
+        <div>
+            <h1 class="page-title">Chat de trabajos en proceso</h1>
+            <p class="page-subtitle">
+                Conversá con tus clientes cuando una cotización haya sido aceptada.
+            </p>
+        </div>
+
+        <button class="btn btn-outline-secondary btn-sm" onclick="cargarTodo()">
+            Actualizar chats
+        </button>
+    </div>
+
+    <!-- =========================
+         TRABAJOS EN PROCESO + CHAT
+         ========================= -->
+    <div class="card app-card">
+        <div class="card-header d-flex justify-content-between">
+            <span>Mis trabajos en proceso</span>
+            <button class="btn btn-sm btn-secondary" onclick="cargarTrabajosAsignados()">Recargar</button>
+        </div>
+
+        <div class="card-body">
+            <div class="row g-3">
+
+                <!-- Lista de trabajos asignados al profesional -->
+                <div class="col-md-5">
+                    <h6>Trabajos aceptados por clientes</h6>
+
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle table-hover">
+                            <thead class="table-light">
+                            <tr>
+                                <th style="width:60px">ID</th>
+                                <th>Título</th>
+                                <th>Cliente</th>
+                                <th style="width:130px"></th>
+                            </tr>
+                            </thead>
+
+                            <tbody id="tabla-asignados">
+                            <tr><td colspan="4">Cargando...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Panel de chat -->
+                <div class="col-md-7">
+                    <h6>Chat del trabajo seleccionado</h6>
+
+                    <div class="mb-2">
+                        <strong>Trabajo:</strong> <span id="chat-trabajo">–</span>
+                    </div>
+
+                    <div class="mb-2">
+                        <strong>Cliente:</strong> <span id="chat-cliente">–</span>
+                    </div>
+
+                    <div id="chat-mensajes" class="chat-box">
+                        <div class="text-muted">Seleccioná un trabajo para abrir el chat.</div>
+                    </div>
+
+                    <div class="input-group mt-2">
+            <textarea id="chat-input"
+                      class="form-control"
+                      rows="1"
+                      maxlength="500"
+                      placeholder="Escribí un mensaje..."
+                      onkeydown="if(event.key === 'Enter' && !event.shiftKey){ event.preventDefault(); enviarMensajeChatProfesional(); }"></textarea>
+
+                        <button class="btn btn-primary" onclick="enviarMensajeChatProfesional()">
+                            Enviar
+                        </button>
+                    </div>
+
+                    <div class="form-text">
+                        Máximo 500 caracteres. El chat se actualiza automáticamente cada 4 segundos.
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- =========================
+     MODAL DE DETALLE DEL TRABAJO
+     ========================= -->
+<div class="modal fade" id="detalleTrabajoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    Detalle del trabajo <span id="detalle-id">-</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+
+            <div class="modal-body">
+                <div class="row g-3">
+
+                    <div class="col-12">
+                        <div class="detail-label">Título</div>
+                        <div class="detail-box" id="detalle-titulo">-</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Cliente</div>
+                        <div class="detail-box" id="detalle-cliente">-</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Estado</div>
+                        <div class="detail-box" id="detalle-estado">-</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Ubicación</div>
+                        <div class="detail-box" id="detalle-ubicacion">-</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Medidas</div>
+                        <div class="detail-box" id="detalle-medidas">-</div>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="detail-label">Descripción</div>
+                        <div class="detail-box" id="detalle-descripcion">-</div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="abrirChatDesdeDetalle()">
+                    Abrir chat
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    Cerrar
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    // =========================================================
+    // VARIABLES GLOBALES
+    // =========================================================
+    let token = null;
+    let userId = null;
+    let chatTrabajoId = null;
+    let trabajosAsignados = [];
+    let trabajoDetalleActual = null;
+
+    // Timer para refrescar automáticamente el chat del profesional
+    let chatRefreshTimer = null;
+
+    // Intervalo de actualización del chat: 4000 ms = 4 segundos
+    const CHAT_REFRESH_MS = 4000;
+
+    // Helpers
+    const $ = (id) => document.getElementById(id);
+    const safe = (s) => (s == null ? '' : String(s));
+
+    /**
+     * Decodifica el payload del JWT.
+     */
+    function decodeJwt(t) {
+      return JSON.parse(atob(t.split('.')[1]));
+    }
+
+    /**
+     * Cierra sesión y vuelve al inicio público.
+     */
+    function logout() {
+      localStorage.removeItem('jwt');
+      location.href = '/public/index.html';
+    }
+
+    /**
+     * Devuelve una insignia visual según el estado.
+     */
+    function badgeEstado(estado) {
+      const e = (estado || '').toUpperCase();
+
+      if (e === 'PUBLICADO') return '<span class="badge bg-primary">PUBLICADO</span>';
+      if (e === 'EN_PROCESO') return '<span class="badge bg-info text-dark">EN_PROCESO</span>';
+      if (e === 'FINALIZADO') return '<span class="badge bg-success">FINALIZADO</span>';
+      if (e === 'BAJA') return '<span class="badge bg-secondary">BAJA</span>';
+
+      return safe(estado) || '-';
+    }
+
+    // =========================================================
+    // CARGA DE TRABAJOS ASIGNADOS AL PROFESIONAL
+    // =========================================================
+    async function cargarTrabajosAsignados() {
+      const tbody = $('tabla-asignados');
+      tbody.innerHTML = '<tr><td colspan="4">Cargando...</td></tr>';
+
+      const resp = await fetch(`/api/trabajos/profesional/${userId}/asignados`, {
+        headers: {
+          'Authorization': 'Bearer ' + token
+        }
+      });
+
+      if (!resp.ok) {
+        tbody.innerHTML = '<tr><td colspan="4">Error al cargar trabajos asignados.</td></tr>';
+        return;
+      }
+
+      const lista = await resp.json();
+
+      trabajosAsignados = Array.isArray(lista)
+        ? lista.sort((a, b) => Number(b.id) - Number(a.id))
+        : [];
+
+      if (!trabajosAsignados.length) {
+        tbody.innerHTML = '<tr><td colspan="4">Todavía no tenés trabajos en proceso.</td></tr>';
+        resetChat();
+        return;
+      }
+
+      tbody.innerHTML = trabajosAsignados.map(t => {
+        const tituloEsc = safe(t.titulo).replace(/'/g, "\\'");
+        const clienteNombre = safe(t.clienteNombre) || safe(t.clienteId) || '-';
+        const clienteEsc = clienteNombre.replace(/'/g, "\\'");
+
+        return `
+          <tr>
+            <td>${t.id}</td>
+            <td>${safe(t.titulo)}</td>
+            <td>${clienteNombre}</td>
+            <td class="d-flex gap-2 flex-wrap">
+              <button class="btn btn-sm btn-outline-secondary"
+                      onclick="verDetalleTrabajo(${t.id})">
+                Detalle
+              </button>
+
+              <button class="btn btn-sm btn-outline-primary"
+                      onclick="abrirChatProfesional(${t.id}, '${tituloEsc}', '${clienteEsc}')">
+                Chat
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // =========================================================
+    // DETALLE DEL TRABAJO
+    // =========================================================
+    function verDetalleTrabajo(trabajoId) {
+      const trabajo = trabajosAsignados.find(t => Number(t.id) === Number(trabajoId));
+      if (!trabajo) return;
+
+      trabajoDetalleActual = trabajo;
+
+      $('detalle-id').textContent = '#' + (trabajo.id ?? '-');
+      $('detalle-titulo').textContent = safe(trabajo.titulo) || '-';
+      $('detalle-cliente').textContent = safe(trabajo.clienteNombre) || safe(trabajo.clienteId) || '-';
+      $('detalle-estado').innerHTML = badgeEstado(trabajo.estado);
+      $('detalle-ubicacion').textContent = safe(trabajo.ubicacion) || 'No informada';
+      $('detalle-medidas').textContent = safe(trabajo.medidas) || 'No informadas';
+      $('detalle-descripcion').textContent = safe(trabajo.descripcion) || 'Sin descripción.';
+
+      const modal = new bootstrap.Modal(document.getElementById('detalleTrabajoModal'));
+      modal.show();
+    }
+
+    /**
+     * Permite abrir el chat desde el modal de detalle.
+     */
+    function abrirChatDesdeDetalle() {
+      if (!trabajoDetalleActual) return;
+
+      abrirChatProfesional(
+        trabajoDetalleActual.id,
+        trabajoDetalleActual.titulo,
+        safe(trabajoDetalleActual.clienteNombre) || safe(trabajoDetalleActual.clienteId) || '-'
+      );
+
+      const modalElement = document.getElementById('detalleTrabajoModal');
+      const modal = bootstrap.Modal.getInstance(modalElement);
+      if (modal) modal.hide();
+    }
+
+    // =========================================================
+    // CHAT DEL PROFESIONAL
+    // =========================================================
+    function resetChat() {
+      detenerAutoRefreshChatProfesional();
+
+      chatTrabajoId = null;
+      $('chat-trabajo').textContent = '–';
+      $('chat-cliente').textContent = '–';
+      $('chat-mensajes').innerHTML = '<div class="text-muted">Seleccioná un trabajo para abrir el chat.</div>';
+      $('chat-input').value = '';
+    }
+
+    /**
+     * Abre el chat de un trabajo asignado al profesional.
+     * También inicia el refresco automático.
+     */
+    async function abrirChatProfesional(trabajoId, titulo, clienteNombre) {
+      chatTrabajoId = trabajoId;
+
+      $('chat-trabajo').textContent = `${trabajoId} — ${titulo}`;
+      $('chat-cliente').textContent = clienteNombre || '-';
+
+      await cargarMensajesChatProfesional();
+      iniciarAutoRefreshChatProfesional();
+    }
+
+    /**
+     * Inicia el refresco automático del chat del profesional.
+     */
+    function iniciarAutoRefreshChatProfesional() {
+      detenerAutoRefreshChatProfesional();
+
+      chatRefreshTimer = setInterval(() => {
+        if (!chatTrabajoId) return;
+        if (document.hidden) return;
+
+        cargarMensajesChatProfesional(true);
+      }, CHAT_REFRESH_MS);
+    }
+
+    /**
+     * Detiene el refresco automático del chat del profesional.
+     */
+    function detenerAutoRefreshChatProfesional() {
+      if (chatRefreshTimer) {
+        clearInterval(chatRefreshTimer);
+        chatRefreshTimer = null;
+      }
+    }
+
+    /**
+     * Carga los mensajes del trabajo seleccionado.
+     * El parámetro silencioso evita que el chat parpadee cuando se refresca solo.
+     */
+    async function cargarMensajesChatProfesional(silencioso = false) {
+      if (!chatTrabajoId) return;
+
+      const cont = $('chat-mensajes');
+
+      if (!silencioso) {
+        cont.innerHTML = '<div class="text-muted">Cargando mensajes...</div>';
+      }
+
+      const resp = await fetch(`/api/chat/trabajo/${chatTrabajoId}`, {
+        headers: {
+          'Authorization': 'Bearer ' + token
+        }
+      });
+
+      if (!resp.ok) {
+        const txt = await resp.text();
+        if (!silencioso) {
+          cont.innerHTML = `<div class="text-danger">No se pudo cargar el chat: ${safe(txt)}</div>`;
+        }
+        return;
+      }
+
+      const mensajes = await resp.json();
+
+      if (!Array.isArray(mensajes) || !mensajes.length) {
+        cont.innerHTML = '<div class="text-muted">Todavía no hay mensajes en este chat.</div>';
+        return;
+      }
+
+      cont.innerHTML = '';
+
+      mensajes.forEach(m => {
+        const soyYo = Number(m.remitenteId) === Number(userId);
+
+        const fila = document.createElement('div');
+        fila.className = 'mb-2 d-flex ' + (soyYo ? 'justify-content-end' : 'justify-content-start');
+
+        const burbuja = document.createElement('div');
+        burbuja.className = 'p-2 rounded-3 ' + (soyYo ? 'bg-primary text-white' : 'bg-light');
+        burbuja.style.maxWidth = '75%';
+
+        const nombre = m.remitenteNombre || m.remitenteRol || '';
+        const fecha = m.enviadoEn ? m.enviadoEn.replace('T', ' ').slice(0, 16) : '';
+
+        burbuja.innerHTML = `
+          <div class="small fw-bold">${safe(nombre)}</div>
+          <div>${safe(m.contenido)}</div>
+          <div class="small text-end ${soyYo ? 'text-white-50' : 'text-muted'}">${fecha}</div>
+        `;
+
+        fila.appendChild(burbuja);
+        cont.appendChild(fila);
+      });
+
+      cont.scrollTop = cont.scrollHeight;
+    }
+
+    /**
+     * Envía un mensaje desde el profesional al cliente.
+     */
+    async function enviarMensajeChatProfesional() {
+      if (!chatTrabajoId) {
+        alert('Primero seleccioná un trabajo en proceso.');
+        return;
+      }
+
+      const texto = $('chat-input').value.trim();
+
+      if (!texto) {
+        return;
+      }
+
+      if (texto.length > 500) {
+        alert('El mensaje no puede superar los 500 caracteres.');
+        return;
+      }
+
+      const body = {
+        trabajoId: chatTrabajoId,
+        remitenteId: userId,
+        remitenteRol: 'PROFESIONAL',
+        contenido: texto
+      };
+
+      const resp = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify(body)
+      });
+
+      if (!resp.ok) {
+        const txt = await resp.text();
+        alert('No se pudo enviar el mensaje: ' + txt);
+        return;
+      }
+
+      $('chat-input').value = '';
+      await cargarMensajesChatProfesional();
+    }
+
+    // =========================================================
+    // CARGA GENERAL
+    // =========================================================
+    async function cargarTodo() {
+      await cargarTrabajosAsignados();
+    }
+
+    // =========================================================
+    // INICIO DE LA PÁGINA
+    // =========================================================
+    document.addEventListener('DOMContentLoaded', async () => {
+      token = localStorage.getItem('jwt');
+
+      if (!token) {
+        location.href = '/public/login.html';
+        return;
+      }
+
+      const payload = decodeJwt(token);
+      userId = payload.userId;
+
+      // Panel técnico de sesión retirado de la vista final.
+      // Estas asignaciones quedan protegidas por si otra versión del HTML conserva esos elementos.
+      if ($('sesion-email')) $('sesion-email').textContent = payload.sub || '-';
+      if ($('sesion-rol')) $('sesion-rol').textContent = payload.rol || '-';
+      if ($('sesion-id')) $('sesion-id').textContent = userId || '-';
+
+      if (payload.rol !== 'PROFESIONAL') {
+        alert('Esta vista es solo para profesionales.');
+        logout();
+        return;
+      }
+
+      await cargarTodo();
+    });
+
+    /**
+     * Detiene el refresco automático al salir de la página.
+     */
+    window.addEventListener('beforeunload', () => {
+      detenerAutoRefreshChatProfesional();
+    });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

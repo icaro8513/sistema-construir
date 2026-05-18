@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <!-- =========================
+       CONFIGURACIÓN BÁSICA
+       ========================= -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Construir - Mi reputación</title>
+
+  <!-- =========================
+       BOOTSTRAP
+       ========================= -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+  <style>
+    /* =========================
+       ESTILOS GENERALES
+       ========================= */
+    body {
+      background: #f7f7f9;
+    }
+
+    .resumen-card {
+      border: none;
+      border-radius: 1rem;
+      box-shadow: 0 6px 18px rgba(0,0,0,.06);
+    }
+
+    .resumen-numero {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #0d6efd;
+    }
+
+    .info-box {
+      border: 1px solid #dee2e6;
+      border-radius: .9rem;
+      background: #fff;
+      padding: 1rem;
+      height: 100%;
+    }
+
+    .table-sm td,
+    .table-sm th {
+      padding: .5rem .55rem;
+    }
+
+    .nota-importante {
+      border-left: 4px solid #0d6efd;
+      background: #f8f9fa;
+      padding: 1rem;
+      border-radius: .5rem;
+    }
+  </style>
+</head>
+<body>
+
+<!-- =========================
+     NAVBAR DEL CLIENTE
+     ========================= -->
+<nav class="navbar navbar-dark bg-dark">
+  <div class="container-fluid">
+    <span class="navbar-brand">Construir - Mi reputación</span>
+
+    <div class="d-flex gap-2">
+      <a class="btn btn-outline-light btn-sm" href="/cliente/cliente.html">Panel</a>
+      <a class="btn btn-outline-light btn-sm" href="/cliente/cliente-trabajo.html">Mis trabajos</a>
+      <button class="btn btn-danger btn-sm" onclick="logout()">Cerrar sesión</button>
+    </div>
+  </div>
+</nav>
+
+<div class="container py-4">
+
+  <!-- =========================
+       SESIÓN
+       ========================= -->
+  <div class="card mb-4">
+    <div class="card-header d-flex justify-content-between">
+      <span>Sesión</span>
+      <button class="btn btn-sm btn-secondary" onclick="cargarTodo()">Actualizar</button>
+    </div>
+
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <strong>Usuario:</strong> <span id="sesion-email">-</span>
+        </div>
+
+        <div class="col-md-4">
+          <strong>Rol:</strong> <span id="sesion-rol">-</span>
+        </div>
+
+        <div class="col-md-4">
+          <strong>ID (claim):</strong> <span id="sesion-id">-</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================
+       RESUMEN DE REPUTACIÓN
+       ========================= -->
+  <div class="row g-3 mb-4">
+    <!-- Promedio -->
+    <div class="col-md-4">
+      <div class="card resumen-card">
+        <div class="card-body">
+          <div class="text-muted mb-2">Promedio general</div>
+          <div class="resumen-numero"><span id="rep-prom">0.0</span> / 5</div>
+          <div class="text-warning fs-5">★★★★★</div>
+          <div class="small text-muted mt-2">
+            Valor acumulado según calificaciones recibidas.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cantidad -->
+    <div class="col-md-4">
+      <div class="card resumen-card">
+        <div class="card-body">
+          <div class="text-muted mb-2">Cantidad de calificaciones</div>
+          <div class="resumen-numero" id="rep-cantidad">0</div>
+          <div class="small text-muted mt-2">
+            Total de valoraciones registradas para este cliente.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Última fecha -->
+    <div class="col-md-4">
+      <div class="card resumen-card">
+        <div class="card-body">
+          <div class="text-muted mb-2">Última calificación</div>
+          <div class="resumen-numero" id="rep-ultima-fecha" style="font-size: 1.4rem;">-</div>
+          <div class="small text-muted mt-2">
+            Fecha más reciente de una valoración recibida.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================
+       NOTA IMPORTANTE
+       ========================= -->
+  <div class="nota-importante mb-4">
+    <strong>Importante:</strong>
+    Las calificaciones forman parte del historial del sistema y se muestran en modo de consulta.
+    No pueden ser modificadas ni eliminadas desde esta interfaz.
+  </div>
+
+  <!-- =========================
+       DETALLE DE CALIFICACIONES
+       ========================= -->
+  <div class="card mb-4">
+    <div class="card-header">Calificaciones recibidas</div>
+
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-sm table-hover align-middle">
+          <thead class="table-light">
+          <tr>
+            <th style="width:50px">#</th>
+            <th style="width:80px">Puntaje</th>
+            <th>Autor</th>
+            <th>Comentario</th>
+            <th style="width:120px">Fecha</th>
+            <th style="width:100px">Trabajo</th>
+          </tr>
+          </thead>
+          <tbody id="tabla-calif-recibidas">
+          <tr><td colspan="6">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================
+       AYUDA / INTERPRETACIÓN
+       ========================= -->
+  <div class="card">
+    <div class="card-header">Cómo interpretar esta sección</div>
+
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <div class="info-box">
+            <h6>Promedio</h6>
+            <p class="text-muted mb-0">
+              Representa la valoración general recibida por el cliente a partir de los trabajos finalizados.
+            </p>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="info-box">
+            <h6>Comentarios</h6>
+            <p class="text-muted mb-0">
+              Muestran observaciones registradas por la otra parte al momento de calificar.
+            </p>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="info-box">
+            <h6>Historial</h6>
+            <p class="text-muted mb-0">
+              Las calificaciones son parte del historial del sistema y ayudan a construir reputación.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // =========================================================
+  // VARIABLES GLOBALES
+  // =========================================================
+  let token = null;
+  let userId = null;
+
+  // Helpers
+  const $ = (id) => document.getElementById(id);
+  const safe = (s) => (s == null ? '' : String(s));
+
+  /**
+   * Decodifica el payload del JWT.
+   */
+  function decodeJwt(t) {
+    return JSON.parse(atob(t.split('.')[1]));
+  }
+
+  /**
+   * Cierra sesión y vuelve al inicio público.
+   */
+  function logout() {
+    localStorage.removeItem('jwt');
+    location.href = '/public/index.html';
+  }
+
+  // =========================================================
+  // CARGA DE REPUTACIÓN DEL CLIENTE
+  // =========================================================
+  async function cargarReputacionCliente() {
+    // 1) Promedio general
+    const p = await fetch(`/api/calificaciones/persona/${userId}/promedio`, {
+      headers: { Authorization: 'Bearer ' + token }
+    });
+
+    const prom = p.ok ? await p.json() : 0.0;
+    $('rep-prom').textContent = (prom || 0).toFixed(1);
+
+    // 2) Listado completo de calificaciones
+    const r = await fetch(`/api/calificaciones/persona/${userId}`, {
+      headers: { Authorization: 'Bearer ' + token }
+    });
+
+    let rows = '<tr><td colspan="6">Sin calificaciones.</td></tr>';
+    let ultimaFecha = '-';
+
+    if (r.ok) {
+      const lista = await r.json();
+      const ordenada = Array.isArray(lista)
+        ? lista.sort((a, b) => (b.fecha || '').localeCompare(a.fecha || ''))
+        : [];
+
+      $('rep-cantidad').textContent = ordenada.length || 0;
+
+      if (ordenada.length) {
+        ultimaFecha = (ordenada[0].fecha || '').slice(0, 10) || '-';
+
+        rows = ordenada.map((c, i) => `
+          <tr>
+            <td>${i + 1}</td>
+            <td>${c.puntaje ?? '-'}</td>
+            <td>${safe(c.autorNombre) || c.autorId || '-'}</td>
+            <td>${safe(c.comentario) || '-'}</td>
+            <td>${(c.fecha || '').slice(0, 10)}</td>
+            <td>${c.trabajoId || '-'}</td>
+          </tr>
+        `).join('');
+      }
+    } else {
+      $('rep-cantidad').textContent = '0';
+    }
+
+    $('rep-ultima-fecha').textContent = ultimaFecha;
+    $('tabla-calif-recibidas').innerHTML = rows;
+  }
+
+  // =========================================================
+  // CARGA GENERAL DE LA VISTA
+  // =========================================================
+  async function cargarTodo() {
+    await cargarReputacionCliente();
+  }
+
+  // =========================================================
+  // INICIO DE LA PÁGINA
+  // =========================================================
+  document.addEventListener('DOMContentLoaded', async () => {
+    token = localStorage.getItem('jwt');
+
+    // Si no hay token, volver al login público
+    if (!token) {
+      location.href = '/public/login.html';
+      return;
+    }
+
+    const payload = decodeJwt(token);
+    userId = payload.userId;
+
+    $('sesion-email').textContent = payload.sub || '-';
+    $('sesion-rol').textContent = payload.rol || '-';
+    $('sesion-id').textContent = userId || '-';
+
+    // Seguridad básica de rol
+    if (payload.rol !== 'CLIENTE') {
+      alert('Esta vista es solo para clientes.');
+      logout();
+      return;
+    }
+
+    await cargarTodo();
+  });
+</script>
+
+</body>
+</html>
