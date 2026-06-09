@@ -65,4 +65,4 @@ El sistema fue pensado para poder crecer en futuras versiones. Algunas posibles 
 
 ## Estado del proyecto
 
-El sistema se encuentra en desarrollo y fue realizado como proyecto académico para la materia Programación.
+El sistema se encuentra en desarrollo y fue realizado como proyecto académico para la carrera Desarrollo de Software Cent 35 Prof JG Rio Grande.Provincia de Tierra del fuego( A.e.I.A.S.) .
