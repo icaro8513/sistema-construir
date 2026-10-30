@@ -66,3 +66,7 @@ El sistema fue pensado para poder crecer en futuras versiones. Algunas posibles 
 ## Estado del proyecto
 
 El sistema se encuentra en desarrollo y fue realizado como proyecto académico para la carrera Desarrollo de Software Cent 35 Prof JG Rio Grande.Provincia de Tierra del fuego( A.e.I.A.S.) .
+
+## Documentación UML (versión inicial)
+
+[Diagramas UML, DER y matriz de trazabilidad](docs/uml/README.md) — basados en la versión de `master` del 29/10/2026, pendientes de actualizar con la rama en validación.
